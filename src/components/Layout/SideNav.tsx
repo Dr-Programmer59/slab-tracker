@@ -13,32 +13,31 @@ import {
   Home
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
+import { usePermissions } from '../../utils/permissions';
 
-const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: Home, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/import', label: 'Import', icon: Upload, roles: ['Admin', 'Manager'] },
-  { path: '/inventory', label: 'Inventory', icon: Package, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/streams', label: 'Streams', icon: Radio, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/builder', label: 'Builder', icon: Smartphone, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/shipping', label: 'Shipping', icon: Truck, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/reports', label: 'Reports', icon: BarChart3, roles: ['Admin', 'Manager'] },
-  { path: '/users', label: 'Users', icon: Users, roles: ['Admin'] },
-  { path: '/audit', label: 'Audit', icon: FileText, roles: ['Admin'] },
-];
 
 export function SideNav() {
   const { user } = useAuthStore();
+  const permissions = usePermissions(user);
   const location = useLocation();
 
-  const filteredNavItems = navItems.filter(item => 
-    user && item.roles.includes(user.role)
-  );
+  const navItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: Home, show: true },
+    { path: '/import', label: 'Import', icon: Upload, show: permissions.canImportBatches },
+    { path: '/inventory', label: 'Inventory', icon: Package, show: permissions.canViewCards },
+    { path: '/streams', label: 'Streams', icon: Radio, show: permissions.canManageStreams },
+    { path: '/builder', label: 'Builder', icon: Smartphone, show: permissions.canManageStreams },
+    { path: '/shipping', label: 'Shipping', icon: Truck, show: permissions.canManageShipping },
+    { path: '/reports', label: 'Reports', icon: BarChart3, show: permissions.canViewReports },
+    { path: '/users', label: 'Users', icon: Users, show: permissions.canManageUsers },
+    { path: '/audit', label: 'Audit', icon: FileText, show: permissions.canViewAudit },
+  ].filter(item => item.show);
 
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-800 border-r border-slate-700 overflow-y-auto">
       <nav className="p-4">
         <ul className="space-y-2">
-          {filteredNavItems.map((item, index) => {
+          {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             return (
               <motion.li
