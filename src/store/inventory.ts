@@ -96,7 +96,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     set((state) => ({
       filters: { ...state.filters, ...newFilters },
       pagination: { ...state.pagination, page: 1 }, // Reset to first page
-      pagination: { ...state.pagination, page: 1 }, // Reset to first page
     }));
     // Fetch cards with new filters
     get().fetchCards();
@@ -122,12 +121,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     get().fetchCards();
   },
 
-  setPage: (page) => {
-    set((state) => ({
-      pagination: { ...state.pagination, page }
-    }));
-    get().fetchCards();
-  },
   updateCard: async (id, updates) => {
     try {
       // Optimistic update
@@ -185,52 +178,28 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     if (!open) {
       set({ selectedCard: null });
     }
-  updateCard: async (id, updates) => {
-    try {
-      // Optimistic update
-      set((state) => ({
-        cards: state.cards.map(card => 
-          card.id === id 
-            ? { ...card, ...updates, updatedAt: new Date() }
-            : card
-        )
-      }));
-      
-      // API call
-      await cardAPI.updateCard(id, updates);
-    } catch (error) {
-      // Revert optimistic update on error
-      get().fetchCards();
-      throw error;
-    }
+  },
+
+  getFilteredCards: () => {
+    const { cards, filters } = get();
+    return cards.filter(card => {
+      if (filters.search && !card.title.toLowerCase().includes(filters.search.toLowerCase()) && !card.player.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false;
       }
       if (filters.status && filters.status.length > 0 && !filters.status.includes(card.status)) {
-  deleteCard: async (id) => {
-    try {
-      await cardAPI.deleteCard(id);
-      set((state) => ({
-        cards: state.cards.filter(card => card.id !== id),
-        selectedCard: state.selectedCard?.id === id ? null : state.selectedCard
-      }));
-    } catch (error) {
-      throw error;
-    }
+        return false;
+      }
+      if (filters.sport && filters.sport.length > 0 && !filters.sport.includes(card.sport)) {
+        return false;
+      }
+      if (filters.priceRange && (card.currentValue < filters.priceRange[0] || card.currentValue > filters.priceRange[1])) {
+        return false;
+      }
       if (filters.yearRange && (card.year < filters.yearRange[0] || card.year > filters.yearRange[1])) {
         return false;
-  markArrived: async (id) => {
-    try {
-      await cardAPI.updateCardStatus(id, 'received', {
-        receivedDate: new Date().toISOString(),
-      });
-      
-      const { updateCard } = get();
-      updateCard(id, { 
-        status: 'Arrived',
-        arrivedAt: new Date()
-      });
-    } catch (error) {
-      throw error;
-    }
+      }
+      return true;
+    });
   },
 
   generateLabel: async (cardId) => {
@@ -260,27 +229,3 @@ function mapApiStatusToLocal(apiStatus: string): Card['status'] {
   
   return statusMap[apiStatus] || 'Staged';
 }
-// Helper function to map API status to local status
-function mapApiStatusToLocal(apiStatus: string): Card['status'] {
-  const statusMap: Record<string, Card['status']> = {
-    'pending': 'Staged',
-    'received': 'Arrived',
-    'graded': 'Available',
-    'inventory': 'Available',
-    'reserved': 'AllocatedToStream',
-    'sold': 'Sold',
-    'shipped': 'Shipped',
-  };
-  
-  return statusMap[apiStatus] || 'Staged';
-}
-  generateLabel: async (cardId) => {
-    try {
-      const response = await cardAPI.generateLabel(cardId);
-      // Open label URL in new tab for printing
-      if (response.labelUrl) {
-        window.open(response.labelUrl, '_blank');
-      }
-    } catch (error) {
-      throw error;
-    }
