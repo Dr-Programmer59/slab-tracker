@@ -10,26 +10,81 @@ import {
   Clock,
   AlertCircle
 } from 'lucide-react';
+import { useApi } from '../../hooks/useApi';
+import { reportsAPI } from '../../services/api';
 import { useInventoryStore } from '../../store/inventory';
 import { useStreamsStore } from '../../store/streams';
+import { LoadingSpinner, LoadingSkeleton } from '../../components/Common/LoadingSpinner';
+import { ErrorMessage } from '../../components/Common/ErrorBoundary';
 import { StatusChip } from '../../components/Common/StatusChip';
 import { KPICard } from './KPICard';
 import { RecentActivity } from './RecentActivity';
 import { InventoryChart } from './InventoryChart';
 
 export function Dashboard() {
-  const { cards } = useInventoryStore();
-  const { streams } = useStreamsStore();
+  const { fetchCards } = useInventoryStore();
+  const { fetchStreams } = useStreamsStore();
+  
+  // Fetch dashboard data from API
+  const { data: dashboardData, loading, error, refetch } = useApi(
+    () => reportsAPI.getDashboard(),
+    {
+      immediate: true,
+      onSuccess: () => {
+        // Also fetch cards and streams for other components
+        fetchCards();
+        fetchStreams();
+      }
+    }
+  );
 
-  const kpis = {
-    inventoryValue: cards
-      .filter(c => c.status === 'Available')
-      .reduce((sum, card) => sum + card.purchasePrice, 0),
-    soldRevenue: cards
-      .filter(c => c.status === 'Sold')
-      .reduce((sum, card) => sum + (card.currentValue || card.purchasePrice), 0),
-    streamsCount: streams.length,
-    shippingQueue: cards.filter(c => c.status === 'ToShip').length,
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+            <LoadingSkeleton className="h-4 w-64 mt-2" />
+          </div>
+          <LoadingSkeleton className="h-6 w-32" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <LoadingSkeleton key={i} className="h-32" />
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <LoadingSkeleton className="h-80" />
+          <LoadingSkeleton className="h-80" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <p className="text-slate-400 mt-1">Welcome back! Here's what's happening with your inventory.</p>
+        </div>
+        <ErrorMessage error={error} onRetry={refetch} />
+      </div>
+    );
+  }
+
+  const kpis = dashboardData ? {
+    inventoryValue: dashboardData.totalCards * 100, // Placeholder calculation
+    soldRevenue: dashboardData.monthlyProfit * 3, // Placeholder calculation
+    streamsCount: dashboardData.recentActivity?.filter((a: any) => a.action.includes('stream')).length || 0,
+    shippingQueue: 5, // Placeholder
+  } : {
+    inventoryValue: 0,
+    soldRevenue: 0,
+    streamsCount: 0,
+    shippingQueue: 0,
   };
 
   const containerVariants = {
@@ -118,7 +173,7 @@ export function Dashboard() {
         </motion.div>
         
         <motion.div variants={itemVariants}>
-          <RecentActivity />
+          <RecentActivity activities={dashboardData?.recentActivity || []} />
         </motion.div>
       </div>
 
@@ -132,43 +187,44 @@ export function Dashboard() {
           </Button>
         </div>
 
-        <div className="space-y-3">
-          {cards.slice(0, 5).map((card, index) => (
-            <motion.div
-              key={card.id}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.8 + index * 0.1 }}
-              className="flex items-center justify-between p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                {card.imageUrl && (
-                  <img 
-                    src={card.imageUrl} 
-                    alt={card.title}
-                    className="w-12 h-16 object-cover rounded bg-slate-600"
-                  />
-                )}
-                <div>
-                  <h4 className="font-medium text-white">{card.title}</h4>
-                  <p className="text-sm text-slate-400">{card.player} • {card.sport} • {card.year}</p>
-                  <p className="text-xs text-slate-500">{card.displayId}</p>
+        {dashboardData?.topPerformers ? (
+          <div className="space-y-3">
+            {dashboardData.topPerformers.slice(0, 5).map((card: any, index: number) => (
+              <motion.div
+                key={card.displayId}
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.8 + index * 0.1 }}
+                className="flex items-center justify-between p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-16 bg-slate-600 rounded flex items-center justify-center">
+                    <Package className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-white">{card.cardName || 'Card'}</h4>
+                    <p className="text-sm text-slate-400">{card.playerName} • {card.sport} • {card.year}</p>
+                    <p className="text-xs text-slate-500">{card.displayId}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-white">${card.purchasePrice}</p>
-                  {card.currentValue && (
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-white">${card.marketValue}</p>
                     <p className="text-xs text-green-400">
-                      ${card.currentValue} current
+                      Current value
                     </p>
-                  )}
+                  </div>
+                  <StatusChip status="Available" />
                 </div>
-                <StatusChip status={card.status} />
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Package className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-400">No recent arrivals</p>
+          </div>
+        )}
       </motion.div>
 
       {/* Alerts */}
