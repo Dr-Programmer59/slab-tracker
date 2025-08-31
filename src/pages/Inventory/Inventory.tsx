@@ -22,18 +22,13 @@ export function Inventory() {
     loading,
     error,
     pagination,
-    loading,
-    error,
-    pagination,
     filters, 
     setFilters, 
-    fetchCards,
     fetchCards,
     selectedCard, 
     isDetailDrawerOpen, 
     selectCard, 
     setDetailDrawerOpen,
-    setPage
     setPage
   } = useInventoryStore();
   
