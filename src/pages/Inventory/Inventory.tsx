@@ -10,8 +10,6 @@ import { Drawer } from '../../components/Common/Drawer';
 import { Modal } from '../../components/Common/Modal';
 import { LoadingSpinner, TableSkeleton } from '../../components/Common/LoadingSpinner';
 import { ErrorMessage } from '../../components/Common/ErrorBoundary';
-import { LoadingSpinner, TableSkeleton } from '../../components/Common/LoadingSpinner';
-import { ErrorMessage } from '../../components/Common/ErrorBoundary';
 import { CardDetail } from './CardDetail';
 import { AddCardModal } from './AddCardModal';
 import { FiltersPanel } from './FiltersPanel';
