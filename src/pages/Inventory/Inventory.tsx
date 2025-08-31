@@ -5,4 +5,4 @@ import { useInventoryStore } from '../../store/inventory';
 import { useAuthStore } from '../../store/auth';
 import { usePermissions } from '../../utils/permissions';
 import { Button } from '../../components/Common/Button';
-import { StatusChip }
+import { StatusChip } from '../../components/Common/StatusChip';
