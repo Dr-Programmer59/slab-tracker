@@ -16,30 +16,12 @@ interface StreamsState {
   addCardToStream: (streamId: string, cardDisplayId: string) => Promise<void>;
 }
 
-      
-      set({ streams, loading: false });
+export const useStreamsStore = create<StreamsState>((set, get) => ({
   streams: [],
-      set({
-        loading: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch streams',
-      });
-    }
-  },
+  loading: false,
+  error: null,
+  selectedStream: null,
 
-  createStream: async (streamData) => {
-    try {
-      const response = await streamAPI.createStream({
-        name: streamData.title,
-        description: `Stream by ${streamData.streamer}`,
-        targetValue: streamData.totalCost,
-      });
-      
-      const newStream: Stream = {
-        id: response.stream._id,
-        title: response.stream.name,
-        streamer: streamData.streamer,
-        date: new Date(response.stream.createdAt),
-        status: 'Draft',
   fetchStreams: async () => {
     set({ loading: true, error: null });
     try {
@@ -70,12 +52,8 @@ interface StreamsState {
         error: error instanceof Error ? error.message : 'Failed to fetch streams',
       });
     }
-        createdAt: new Date(response.stream.createdAt),
-        updatedAt: new Date(response.stream.createdAt),
-      streams: state.streams.map(stream => 
-        stream.id === id 
-          ? { ...stream, ...updates, updatedAt: new Date() }
-          : stream
+  },
+
   createStream: async (streamData) => {
     try {
       const response = await streamAPI.createStream({
@@ -105,6 +83,16 @@ interface StreamsState {
     }
   },
 
+  updateStream: (id, updates) => {
+    set((state) => ({
+      streams: state.streams.map(stream => 
+        stream.id === id 
+          ? { ...stream, ...updates, updatedAt: new Date() }
+          : stream
+      )
+    }));
+  },
+
   lockStream: async (id) => {
     try {
       await streamAPI.lockStream(id);
@@ -115,36 +103,6 @@ interface StreamsState {
     }
   },
 
-  finalizeStream: async (id, grossSales, fees) => {
-    try {
-      const { streams } = get();
-      const stream = streams.find(s => s.id === id);
-      if (stream) {
-        const finalizationData = {
-          soldPrice: grossSales,
-          fees,
-          shippingCost: 0,
-          buyerInfo: {
-            name: 'Buyer',
-            email: 'buyer@example.com',
-            address: {
-              street: '123 Main St',
-              city: 'City',
-              state: 'ST',
-              zipCode: '12345',
-              country: 'US'
-            }
-          },
-  lockStream: async (id) => {
-    try {
-      await streamAPI.lockStream(id);
-      const { updateStream } = get();
-      updateStream(id, { status: 'Locked' });
-    } catch (error) {
-      throw error;
-    }
-        await streamAPI.finalizeStream(id, finalizationData);
-        
   finalizeStream: async (id, grossSales, fees) => {
     try {
       const { streams } = get();
@@ -196,12 +154,8 @@ interface StreamsState {
     } catch (error) {
       throw error;
     }
-      // Refresh streams to get updated data
-      get().fetchStreams();
-    } catch (error) {
-      throw error;
-    }
   },
+}));
 
 // Helper function to map API status to local status
 function mapApiStatusToLocal(apiStatus: string): Stream['status'] {
