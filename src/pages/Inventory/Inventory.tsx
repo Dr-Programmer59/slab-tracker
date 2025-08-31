@@ -106,7 +106,13 @@ export function Inventory() {
           onChange={(e) => setSearchInput(e.target.value)}
           className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
         />
-      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden"
+      >
+        {loading ? (
           <div className="p-6">
             <TableSkeleton rows={10} />
           </div>
