@@ -1,277 +1,167 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Plus, Eye, Package } from 'lucide-react';
+import { Search, Filter, Plus, Eye } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventory';
-import { useAuthStore } from '../../store/auth';
-import { usePermissions } from '../../utils/permissions';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
-import { LoadingSpinner, TableSkeleton } from '../../components/Common/LoadingSpinner';
-import { ErrorMessage } from '../../components/Common/ErrorBoundary';
+import { Drawer } from '../../components/Common/Drawer';
+import { Modal } from '../../components/Common/Modal';
 import { CardDetail } from './CardDetail';
 import { AddCardModal } from './AddCardModal';
 import { FiltersPanel } from './FiltersPanel';
 
 export function Inventory() {
-  const { user } = useAuthStore();
-  const { canView, canCreate, canEdit } = usePermissions(user?.role);
-  
-  const {
-    cards,
-    loading,
-    error,
-    filters,
-    pagination,
-    selectedCard,
-    detailDrawerOpen,
-    setFilters,
-    fetchCards,
-    setSelectedCard,
-    setDetailDrawerOpen,
-    setPage
+  const { 
+    filters, 
+    setFilters, 
+    getFilteredCards, 
+    selectedCard, 
+    isDetailDrawerOpen, 
+    selectCard, 
+    setDetailDrawerOpen 
   } = useInventoryStore();
-
+  
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [searchInput, setSearchInput] = useState(filters.search);
 
-  // Debounced search
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== filters.search) {
-        setFilters({ search: searchInput });
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchInput, filters.search, setFilters]);
-
-  // Fetch cards on mount and filter changes
-  React.useEffect(() => {
-    if (canView) {
-      fetchCards();
-    }
-  }, [canView, fetchCards, filters, pagination.page]);
-
-  if (!canView) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">You don't have permission to view inventory.</p>
-      </div>
-    );
-  }
+  const filteredCards = getFilteredCards();
 
   const handleCardClick = (card: any) => {
-    setSelectedCard(card);
+    selectCard(card);
     setDetailDrawerOpen(true);
-  };
-
-  const handlePageChange = (page: number) => {
-    setPage(page);
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
-          <p className="text-gray-600">Manage your trading card inventory</p>
-        </div>
-        {canCreate && (
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Card
-          </Button>
-        )}
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search cards..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2"
-        >
-          <Filter className="w-4 h-4" />
-          Filters
-        </Button>
-      </div>
-
-      {/* Filters Panel */}
-      {showFilters && (
-        <FiltersPanel
-          filters={filters}
-          onFiltersChange={setFilters}
-          onClose={() => setShowFilters(false)}
-        />
-      )}
-
-      {/* Content */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        className="flex items-center justify-between"
       >
-        {loading ? (
-          <div className="space-y-4">
-            <TableSkeleton rows={10} />
-          </div>
-        ) : error ? (
-          <ErrorMessage message={error} />
-        ) : cards.length > 0 ? (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Card
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Set
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Condition
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quantity
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Value
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {cards.map((card) => (
-                    <motion.tr
-                      key={card.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      whileHover={{ backgroundColor: '#f9fafb' }}
-                      className="cursor-pointer"
-                      onClick={() => handleCardClick(card)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                              <Package className="w-5 h-5 text-white" />
-                            </div>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {card.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              #{card.number}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {card.set}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusChip status={card.condition} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {card.quantity}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${card.value?.toFixed(2) || '0.00'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusChip status={card.status} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCardClick(card);
-                          }}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Inventory</h1>
+          <p className="text-slate-400 mt-1">
+            {filteredCards.length} cards {filters.search && `matching "${filters.search}"`}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => setShowFilters(true)}
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+          </Button>
+          <Button onClick={() => setShowAddModal(true)}>
+            <Plus className="w-4 h-4" />
+            Add Card
+          </Button>
+        </div>
+      </motion.div>
 
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} results
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-gray-700">
-                    Page {pagination.page} of {pagination.totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page === pagination.totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No cards found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {filters.search || filters.set || filters.condition || filters.status
-                ? 'Try adjusting your filters'
-                : 'Get started by adding your first card'}
-            </p>
-            {canCreate && (
-              <div className="mt-6">
-                <Button onClick={() => setShowAddModal(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Card
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+      {/* Search */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="relative"
+      >
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+        <input
+          type="text"
+          placeholder="Search cards, players, or use ⌘K for command palette..."
+          value={filters.search}
+          onChange={(e) => setFilters({ search: e.target.value })}
+          className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+        />
+      </motion.div>
+
+      {/* Cards Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-700">
+              <tr>
+                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Card</th>
+                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Player</th>
+                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Details</th>
+                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Purchase</th>
+                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Current</th>
+                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Status</th>
+                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCards.map((card, index) => (
+                <motion.tr
+                  key={card.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  whileHover={{ backgroundColor: 'rgba(51, 65, 85, 0.5)' }}
+                  className="border-b border-slate-700 cursor-pointer"
+                  onClick={() => handleCardClick(card)}
+                >
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      {card.imageUrl && (
+                        <img 
+                          src={card.imageUrl} 
+                          alt={card.title}
+                          className="w-10 h-14 object-cover rounded bg-slate-600"
+                        />
+                      )}
+                      <div>
+                        <div className="font-medium text-white">{card.title}</div>
+                        <div className="text-xs text-slate-400">{card.displayId}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="text-slate-300">{card.player}</span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="text-sm">
+                      <div className="text-slate-300">{card.sport} • {card.year}</div>
+                      {card.grade && <div className="text-slate-400">{card.grade}</div>}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="text-white font-medium">${card.purchasePrice}</span>
+                  </td>
+                  <td className="py-4 px-6">
+                    {card.currentValue ? (
+                      <span className="text-green-400 font-medium">${card.currentValue}</span>
+                    ) : (
+                      <span className="text-slate-500">—</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-6">
+                    <StatusChip status={card.status} />
+                  </td>
+                  <td className="py-4 px-6">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCardClick(card);
+                      }}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </motion.div>
 
       {/* Filters Modal */}
@@ -279,6 +169,7 @@ export function Inventory() {
         isOpen={showFilters}
         onClose={() => setShowFilters(false)}
         title="Filter Cards"
+        size="lg"
       >
         <FiltersPanel
           filters={filters}
@@ -288,21 +179,20 @@ export function Inventory() {
       </Modal>
 
       {/* Add Card Modal */}
-      {showAddModal && (
-        <AddCardModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-        />
-      )}
+      <AddCardModal 
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+      />
 
       {/* Card Detail Drawer */}
-      {selectedCard && (
-        <CardDetail
-          card={selectedCard}
-          isOpen={detailDrawerOpen}
-          onClose={() => setDetailDrawerOpen(false)}
-        />
-      )}
+      <Drawer
+        isOpen={isDetailDrawerOpen}
+        onClose={() => setDetailDrawerOpen(false)}
+        title="Card Details"
+        size="lg"
+      >
+        {selectedCard && <CardDetail card={selectedCard} />}
+      </Drawer>
     </div>
   );
 }
