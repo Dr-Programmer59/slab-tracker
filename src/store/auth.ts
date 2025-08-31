@@ -66,7 +66,44 @@ export const useAuthStore = create<AuthState>()(
         console.log('🔄 Initializing authentication...');
         set({ initializing: true });
         
-        const token = localStorage.getItem('slabtrack_token');
+        try {
+          const token = localStorage.getItem('slabtrack_token');
+          if (token) {
+            const isValid = await authService.initializeAuth();
+            
+            if (isValid) {
+              const storedUser = authService.getStoredUser();
+              if (storedUser) {
+                const user: User = {
+                  id: storedUser.id || storedUser._id,
+                  email: storedUser.email,
+                  displayName: storedUser.displayName,
+                  role: storedUser.role === 'admin' ? 'Admin' : 
+                        storedUser.role === 'manager' ? 'Manager' : 'Member',
+                  status: 'Active',
+                  lastLogin: new Date(storedUser.lastLoginAt || Date.now()),
+                  createdAt: new Date(storedUser.createdAt || Date.now()),
+                };
+                set({ user, isAuthenticated: true, initializing: false });
+                console.log('✅ Authentication restored for:', user.displayName);
+              }
+            } else {
+              set({ user: null, isAuthenticated: false, initializing: false });
+              console.log('🔒 No valid session found');
+            }
+          } else {
+            set({ user: null, isAuthenticated: false, initializing: false });
+            console.log('🔒 No token found');
+          }
+        } catch (error) {
+          console.error('❌ Auth initialization failed:', error);
+          authService.logout();
+          set({ user: null, isAuthenticated: false, initializing: false });
+        }
+      }
+    })
+  )
+);
           const isValid = await authService.initializeAuth();
           
           if (isValid) {
