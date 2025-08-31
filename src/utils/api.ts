@@ -16,6 +16,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('slabtrack_token');
     if (token) {
+      console.log("this is token ", token)
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -24,21 +25,21 @@ api.interceptors.request.use(
 );
 
 // Simple response interceptor for auth errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('slabtrack_token');
-      localStorage.removeItem('slabtrack_user');
-      localStorage.removeItem('slabtrack_remember');
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401) {
+//       localStorage.removeItem('slabtrack_token');
+//       localStorage.removeItem('slabtrack_user');
+//       localStorage.removeItem('slabtrack_remember');
       
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
+//       if (window.location.pathname !== '/login') {
+//         window.location.href = '/login';
+//       }
+//     }
     
-    return Promise.reject(error);
-  }
-);
+//     return Promise.reject(error);
+//   }
+// );
 
 export default api;

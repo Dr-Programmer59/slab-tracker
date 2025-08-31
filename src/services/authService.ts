@@ -68,10 +68,11 @@ export const authService = {
   },
 
   logout(): void {
+    console.log("Logging out...");  
     localStorage.removeItem('slabtrack_token');
     localStorage.removeItem('slabtrack_user');
     localStorage.removeItem('slabtrack_remember');
-    window.location.href = '/login';
+    // Let the React app handle the redirect through auth state changes
   },
 
   isAuthenticated(): boolean {
