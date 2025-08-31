@@ -2,8 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, Check, AlertCircle, Download, Lock } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-import { apiService } from '../../services/api';
-import { useBatches } from '../../hooks/useApi';
 import { Button } from '../../components/Common/Button';
 import { Modal } from '../../components/Common/Modal';
 import { StatusChip } from '../../components/Common/StatusChip';
@@ -11,54 +9,54 @@ import { BatchTable } from './BatchTable';
 import { RowsTable } from './RowsTable';
 import toast from 'react-hot-toast';
 
+const demoBatches = [
+  {
+    id: '1',
+    name: 'January 2024 Import',
+    uploadedBy: 'admin@slabtrack.com',
+    uploadedAt: new Date('2024-01-15'),
+    totalRows: 25,
+    processedRows: 23,
+    status: 'Open' as const,
+  },
+  {
+    id: '2',
+    name: 'December 2023 Import',
+    uploadedBy: 'manager@slabtrack.com',
+    uploadedAt: new Date('2023-12-28'),
+    totalRows: 18,
+    processedRows: 18,
+    status: 'Locked' as const,
+  },
+];
+
 export function Import() {
-  const { data: batchesData, loading, refetch } = useBatches();
-  const [selectedBatch, setSelectedBatch] = useState<any | null>(null);
+  const [batches, setBatches] = useState(demoBatches);
+  const [selectedBatch, setSelectedBatch] = useState<typeof demoBatches[0] | null>(null);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [uploading, setUploading] = useState(false);
-
-  const batches = batchesData?.batches || [];
-
-  const validateFile = (file: File) => {
-    const allowedTypes = [
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ];
-    
-    if (!allowedTypes.includes(file.type)) {
-      throw new Error('Invalid file type. Please upload CSV or Excel files.');
-    }
-    
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      throw new Error('File too large. Maximum size is 10MB.');
-    }
-  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    try {
-      validateFile(file);
-    } catch (error) {
-      toast.error((error as Error).message);
-      return;
-    }
-
     setUploading(true);
-    
-    apiService.uploadFile(file)
-      .then((result) => {
-        toast.success('File uploaded successfully!');
-        refetch(); // Refresh batches list
-      })
-      .catch((error) => {
-        toast.error(error.message || 'Upload failed');
-      })
-      .finally(() => {
-        setUploading(false);
-      });
+    // Simulate upload
+    setTimeout(() => {
+      const newBatch = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name.replace(/\.[^/.]+$/, ''),
+        uploadedBy: 'current@user.com',
+        uploadedAt: new Date(),
+        totalRows: Math.floor(Math.random() * 50) + 10,
+        processedRows: 0,
+        status: 'Open' as const,
+      };
+      
+      setBatches(prev => [newBatch, ...prev]);
+      setUploading(false);
+      toast.success('File uploaded successfully!');
+    }, 2000);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -73,11 +71,14 @@ export function Import() {
 
   const handleFinishBatch = () => {
     if (selectedBatch) {
-      // Implement API call to lock batch
-      toast.success('Batch locked successfully!');
+      setBatches(prev => prev.map(batch => 
+        batch.id === selectedBatch.id 
+          ? { ...batch, status: 'Locked' as const }
+          : batch
+      ));
       setShowFinishModal(false);
       setSelectedBatch(null);
-      refetch();
+      toast.success('Batch locked successfully!');
     }
   };
 
@@ -155,27 +156,11 @@ export function Import() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        {loading ? (
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 animate-pulse">
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-slate-700 rounded w-1/3"></div>
-                    <div className="h-3 bg-slate-700 rounded w-1/4"></div>
-                  </div>
-                  <div className="w-20 h-4 bg-slate-700 rounded"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
         <BatchTable 
           batches={batches}
           onSelectBatch={setSelectedBatch}
           onFinishBatch={() => setShowFinishModal(true)}
         />
-        )}
       </motion.div>
 
       {/* Rows Table */}

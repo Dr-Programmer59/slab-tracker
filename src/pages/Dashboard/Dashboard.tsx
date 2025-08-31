@@ -10,14 +10,27 @@ import {
   Clock,
   AlertCircle
 } from 'lucide-react';
-import { useDashboardKPIs } from '../../hooks/useApi';
+import { useInventoryStore } from '../../store/inventory';
+import { useStreamsStore } from '../../store/streams';
 import { StatusChip } from '../../components/Common/StatusChip';
 import { KPICard } from './KPICard';
 import { RecentActivity } from './RecentActivity';
 import { InventoryChart } from './InventoryChart';
 
 export function Dashboard() {
-  const { data: kpis, loading } = useDashboardKPIs();
+  const { cards } = useInventoryStore();
+  const { streams } = useStreamsStore();
+
+  const kpis = {
+    inventoryValue: cards
+      .filter(c => c.status === 'Available')
+      .reduce((sum, card) => sum + card.purchasePrice, 0),
+    soldRevenue: cards
+      .filter(c => c.status === 'Sold')
+      .reduce((sum, card) => sum + (card.currentValue || card.purchasePrice), 0),
+    streamsCount: streams.length,
+    shippingQueue: cards.filter(c => c.status === 'ToShip').length,
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -38,29 +51,6 @@ export function Dashboard() {
     },
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-slate-800 border border-slate-700 rounded-xl p-6 animate-pulse">
-              <div className="h-4 bg-slate-700 rounded mb-4"></div>
-              <div className="h-8 bg-slate-700 rounded"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!kpis) {
-    return (
-      <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-        <p className="text-slate-400">Failed to load dashboard data</p>
-      </div>
-    );
-  }
   return (
     <motion.div
       variants={containerVariants}
@@ -86,7 +76,7 @@ export function Dashboard() {
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="Inventory Value"
-          value={kpis.totalValue || 0}
+          value={kpis.inventoryValue}
           format="currency"
           icon={Package}
           trend="+5.2%"
@@ -95,7 +85,7 @@ export function Dashboard() {
         />
         <KPICard
           title="Sold Revenue"
-          value={kpis.monthlyProfit || 0}
+          value={kpis.soldRevenue}
           format="currency"
           icon={DollarSign}
           trend="+12.8%"
@@ -104,19 +94,19 @@ export function Dashboard() {
         />
         <KPICard
           title="Active Streams"
-          value={kpis.totalCards || 0}
+          value={kpis.streamsCount}
           format="number"
           icon={Radio}
-          trend={`${kpis.recentActivity?.length || 0} this week`}
+          trend="2 this week"
           color="cyan"
         />
         <KPICard
           title="Shipping Queue"
-          value={kpis.activeStreams || 0}
+          value={kpis.shippingQueue}
           format="number"
           icon={TrendingUp}
-          trend="Normal"
-          trendUp={true}
+          trend={kpis.shippingQueue > 5 ? 'High volume' : 'Normal'}
+          trendUp={kpis.shippingQueue <= 5}
           color="amber"
         />
       </motion.div>
@@ -128,7 +118,7 @@ export function Dashboard() {
         </motion.div>
         
         <motion.div variants={itemVariants}>
-          <RecentActivity activities={kpis.recentActivity || []} />
+          <RecentActivity />
         </motion.div>
       </div>
 
@@ -143,7 +133,7 @@ export function Dashboard() {
         </div>
 
         <div className="space-y-3">
-          {(kpis.topPerformers || []).slice(0, 5).map((card, index) => (
+          {cards.slice(0, 5).map((card, index) => (
             <motion.div
               key={card.id}
               initial={{ x: -20, opacity: 0 }}
@@ -188,7 +178,7 @@ export function Dashboard() {
           <div>
             <h4 className="font-medium text-white mb-1">Action Required</h4>
             <p className="text-sm text-slate-300">
-              Check your recent activity for items requiring attention.
+              You have {kpis.shippingQueue} items ready to ship and 2 streams pending finalization.
             </p>
           </div>
         </div>

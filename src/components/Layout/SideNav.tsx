@@ -12,7 +12,7 @@ import {
   FileText,
   Home
 } from 'lucide-react';
-import { usePermissions } from '../../utils/permissions';
+import { useAuthStore } from '../../store/auth';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: Home, roles: ['Admin', 'Manager', 'Member'] },
@@ -27,11 +27,11 @@ const navItems = [
 ];
 
 export function SideNav() {
-  const { userRole } = usePermissions();
+  const { user } = useAuthStore();
   const location = useLocation();
 
   const filteredNavItems = navItems.filter(item => 
-    userRole && item.roles.includes(userRole)
+    user && item.roles.includes(user.role)
   );
 
   return (

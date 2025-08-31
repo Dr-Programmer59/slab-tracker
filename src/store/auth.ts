@@ -1,15 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { apiService } from '../services/api';
 import type { User } from '../types';
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  refreshUser: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
 }
 
@@ -18,34 +15,54 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
-      loading: false,
 
       login: async (email: string, password: string) => {
-        set({ loading: true });
-        try {
-          const { token, user } = await apiService.login({ email, password });
-          localStorage.setItem('token', token);
-          set({ user, isAuthenticated: true, loading: false });
-        } catch (error) {
-          set({ loading: false });
-          throw error;
+        // Simulate authentication
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Demo users
+        const demoUsers: Record<string, User> = {
+          'admin@slabtrack.com': {
+            id: '1',
+            email: 'admin@slabtrack.com',
+            displayName: 'Admin User',
+            role: 'Admin',
+            status: 'Active',
+            lastLogin: new Date(),
+            createdAt: new Date('2024-01-01'),
+          },
+          'manager@slabtrack.com': {
+            id: '2',
+            email: 'manager@slabtrack.com',
+            displayName: 'Manager User',
+            role: 'Manager',
+            status: 'Active',
+            lastLogin: new Date(),
+            createdAt: new Date('2024-01-01'),
+          },
+          'member@slabtrack.com': {
+            id: '3',
+            email: 'member@slabtrack.com',
+            displayName: 'Member User',
+            role: 'Member',
+            status: 'Active',
+            lastLogin: new Date(),
+            createdAt: new Date('2024-01-01'),
+          },
+        };
+
+        const user = demoUsers[email];
+        if (user && password === 'password123') {
+          set({ user, isAuthenticated: true });
+        } else {
+          throw new Error('Invalid credentials');
         }
       },
 
       logout: () => {
-        localStorage.removeItem('token');
         set({ user: null, isAuthenticated: false });
       },
 
-      refreshUser: async () => {
-        try {
-          const { user } = await apiService.getCurrentUser();
-          set({ user });
-        } catch (error) {
-          // Token invalid, logout
-          get().logout();
-        }
-      },
       updateUser: (updates) => {
         const { user } = get();
         if (user) {
@@ -55,10 +72,6 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'slabtrack-auth',
-      partialize: (state) => ({ 
-        user: state.user, 
-        isAuthenticated: state.isAuthenticated 
-      }),
     }
   )
 );

@@ -1,47 +1,61 @@
 import { create } from 'zustand';
-import { apiService } from '../services/api';
 import type { Stream } from '../types';
-import toast from 'react-hot-toast';
 
 interface StreamsState {
   streams: Stream[];
   selectedStream: Stream | null;
-  loading: boolean;
-  fetchStreams: () => Promise<void>;
   createStream: (stream: Omit<Stream, 'id' | 'createdAt' | 'updatedAt' | 'cards'>) => void;
   updateStream: (id: string, updates: Partial<Stream>) => void;
   lockStream: (id: string) => void;
   finalizeStream: (id: string, grossSales: number, fees: number) => void;
   selectStream: (stream: Stream | null) => void;
-  addCardsToStream: (streamId: string, cardIds: string[]) => Promise<void>;
 }
 
+const demoStreams: Stream[] = [
+  {
+    id: '1',
+    title: 'January 2024 Live Break',
+    streamer: 'CardBreaker Pro',
+    date: new Date('2024-01-20'),
+    status: 'Draft',
+    totalItems: 8,
+    totalCost: 450.00,
+    cards: [],
+    createdAt: new Date('2024-01-18'),
+    updatedAt: new Date('2024-01-20'),
+  },
+  {
+    id: '2',
+    title: 'Holiday Special Stream',
+    streamer: 'CardBreaker Pro',
+    date: new Date('2023-12-25'),
+    status: 'Finalized',
+    totalItems: 12,
+    totalCost: 680.00,
+    grossSales: 920.00,
+    fees: 45.00,
+    profit: 195.00,
+    cards: [],
+    createdAt: new Date('2023-12-20'),
+    updatedAt: new Date('2023-12-26'),
+  },
+];
 
 export const useStreamsStore = create<StreamsState>((set, get) => ({
-  streams: [],
+  streams: demoStreams,
   selectedStream: null,
-  loading: false,
 
-  fetchStreams: async () => {
-    set({ loading: true });
-    try {
-      const { streams } = await apiService.getStreams();
-      set({ streams, loading: false });
-    } catch (error) {
-      set({ loading: false });
-      toast.error('Failed to fetch streams');
-    }
-  },
-  createStream: async (streamData) => {
-    try {
-      const { stream } = await apiService.createStream(streamData);
-      set((state) => ({
-        streams: [...state.streams, stream]
-      }));
-      toast.success('Stream created successfully');
-    } catch (error) {
-      toast.error('Failed to create stream');
-    }
+  createStream: (streamData) => {
+    const newStream: Stream = {
+      ...streamData,
+      id: Math.random().toString(36).substr(2, 9),
+      cards: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    set((state) => ({
+      streams: [...state.streams, newStream]
+    }));
   },
 
   updateStream: (id, updates) => {
@@ -57,34 +71,23 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
   lockStream: (id) => {
     const { updateStream } = get();
     updateStream(id, { status: 'Locked' });
-    toast.success('Stream locked successfully');
   },
 
-  finalizeStream: async (id, grossSales, fees) => {
-    try {
-      const { stream } = await apiService.finalizeStream(id);
-      set((state) => ({
-        streams: state.streams.map(s => s.id === id ? stream : s)
-      }));
-      toast.success('Stream finalized successfully');
-    } catch (error) {
-      toast.error('Failed to finalize stream');
+  finalizeStream: (id, grossSales, fees) => {
+    const { streams, updateStream } = get();
+    const stream = streams.find(s => s.id === id);
+    if (stream) {
+      const profit = grossSales - fees - stream.totalCost;
+      updateStream(id, {
+        status: 'Finalized',
+        grossSales,
+        fees,
+        profit,
+      });
     }
   },
 
   selectStream: (stream) => {
     set({ selectedStream: stream });
-  },
-
-  addCardsToStream: async (streamId, cardIds) => {
-    try {
-      const { stream, addedCount } = await apiService.addCardsToStream(streamId, cardIds);
-      set((state) => ({
-        streams: state.streams.map(s => s.id === streamId ? stream : s)
-      }));
-      toast.success(`Added ${addedCount} cards to stream`);
-    } catch (error) {
-      toast.error('Failed to add cards to stream');
-    }
   },
 }));

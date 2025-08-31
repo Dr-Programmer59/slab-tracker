@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, Plus, Eye } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventory';
-import { useCards } from '../../hooks/useApi';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
 import { Drawer } from '../../components/Common/Drawer';
@@ -14,35 +13,24 @@ import { FiltersPanel } from './FiltersPanel';
 export function Inventory() {
   const { 
     filters, 
-    loading,
-    selectedCards,
     setFilters, 
-    selectCards,
+    getFilteredCards, 
     selectedCard, 
     isDetailDrawerOpen, 
     selectCard, 
-    setDetailDrawerOpen,
-    fetchCards
+    setDetailDrawerOpen 
   } = useInventoryStore();
   
-  const { data: cardsData } = useCards(filters);
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const cards = cardsData?.cards || [];
-  const pagination = cardsData?.pagination || { page: 1, pages: 1, total: 0 };
+  const filteredCards = getFilteredCards();
 
   const handleCardClick = (card: any) => {
     selectCard(card);
     setDetailDrawerOpen(true);
   };
 
-  const handleSelectCard = (cardId: string, selected: boolean) => {
-    const newSelection = selected 
-      ? [...selectedCards, cardId]
-      : selectedCards.filter(id => id !== cardId);
-    selectCards(newSelection);
-  };
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -54,15 +42,10 @@ export function Inventory() {
         <div>
           <h1 className="text-2xl font-bold text-white">Inventory</h1>
           <p className="text-slate-400 mt-1">
-            {pagination.total} cards {filters.search && `matching "${filters.search}"`}
+            {filteredCards.length} cards {filters.search && `matching "${filters.search}"`}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {selectedCards.length > 0 && (
-            <Button variant="secondary">
-              {selectedCards.length} selected
-            </Button>
-          )}
           <Button
             variant="secondary"
             onClick={() => setShowFilters(true)}
@@ -101,37 +84,10 @@ export function Inventory() {
         transition={{ delay: 0.2 }}
         className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
       >
-        {loading ? (
-          <div className="p-8">
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 animate-pulse">
-                  <div className="w-10 h-14 bg-slate-700 rounded"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-slate-700 rounded w-1/3"></div>
-                    <div className="h-3 bg-slate-700 rounded w-1/4"></div>
-                  </div>
-                  <div className="w-20 h-4 bg-slate-700 rounded"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-700">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={selectedCards.length === cards.length && cards.length > 0}
-                    onChange={(e) => {
-                      const allIds = cards.map(c => c.id);
-                      selectCards(e.target.checked ? allIds : []);
-                    }}
-                    className="rounded"
-                  />
-                </th>
                 <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Card</th>
                 <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Player</th>
                 <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Details</th>
@@ -142,7 +98,7 @@ export function Inventory() {
               </tr>
             </thead>
             <tbody>
-              {cards.map((card, index) => (
+              {filteredCards.map((card, index) => (
                 <motion.tr
                   key={card.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -152,17 +108,6 @@ export function Inventory() {
                   className="border-b border-slate-700 cursor-pointer"
                   onClick={() => handleCardClick(card)}
                 >
-                  <td className="py-4 px-6">
-                    <input
-                      type="checkbox"
-                      checked={selectedCards.includes(card.id)}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleSelectCard(card.id, e.target.checked);
-                      }}
-                      className="rounded"
-                    />
-                  </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       {card.imageUrl && (
@@ -217,42 +162,8 @@ export function Inventory() {
             </tbody>
           </table>
         </div>
-        )}
       </motion.div>
 
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-slate-400 text-sm">
-            Showing {((pagination.page - 1) * 20) + 1} to {Math.min(pagination.page * 20, pagination.total)} of {pagination.total} cards
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={pagination.page === 1}
-              onClick={() => {
-                // Implement pagination
-              }}
-            >
-              Previous
-            </Button>
-            <span className="text-slate-300 text-sm">
-              Page {pagination.page} of {pagination.pages}
-            </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={pagination.page === pagination.pages}
-              onClick={() => {
-                // Implement pagination
-              }}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
       {/* Filters Modal */}
       <Modal
         isOpen={showFilters}
