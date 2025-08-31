@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
-import { ErrorBoundary } from './components/Common/ErrorBoundary';
 import { useAuthStore } from './store/auth';
 import { Login } from './pages/Auth/Login';
 import { AppLayout } from './components/Layout/AppLayout';
