@@ -5,17 +5,7 @@ import { Clock, Upload, Package, Radio, Truck } from 'lucide-react';
 interface RecentActivityProps {
   activities: any[];
 }
-    };
 
-    return {
-      id: activity._id,
-      action: activity.action.replace(/_/g, ' '),
-      description: activity.details?.description || `${activity.entityType} ${activity.entityId}`,
-      time: formatTimeAgo(activity.timestamp),
-      icon: getActivityIcon(activity.action),
-      color: getActivityColor(activity.action),
-    };
-  });
 export function RecentActivity({ activities }: RecentActivityProps) {
   // Transform API activities to display format
   const displayActivities = activities.map((activity: any) => {
@@ -67,31 +57,6 @@ export function RecentActivity({ activities }: RecentActivityProps) {
 
       {displayActivities.length > 0 ? (
         <div className="space-y-4">
-          {displayActivities.map((activity, index) => (
-            <motion.div
-              key={activity.id}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: index * 0.1, duration: 0.3 }}
-              className="flex items-start gap-4 p-3 rounded-lg hover:bg-slate-700 transition-colors"
-            >
-              <div className={`p-2 rounded-lg bg-slate-700 ${activity.color}`}>
-                <activity.icon className="w-4 h-4" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-white text-sm">{activity.action}</p>
-                <p className="text-slate-400 text-sm">{activity.description}</p>
-                <p className="text-slate-500 text-xs mt-1">{activity.time}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-8">
-          <Clock className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-400">No recent activity</p>
-        </div>
-      )}
           {displayActivities.map((activity, index) => (
             <motion.div
               key={activity.id}
