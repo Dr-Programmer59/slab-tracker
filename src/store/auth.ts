@@ -101,4 +101,6 @@ export const useAuthStore = create<AuthState>()(
           set({ user: null, isAuthenticated: false, initializing: false });
         }
       }
-);
+  }
+  );
+)
