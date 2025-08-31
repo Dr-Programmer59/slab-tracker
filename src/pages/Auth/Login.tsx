@@ -24,10 +24,12 @@ export function Login() {
 
     setLoading(true);
     try {
+      console.log('🔑 Attempting login with:', { email, password: '***' });
       await login(email, password);
-      toast.success('Welcome to SlabTrack!');
+      // Success toast is now handled in the auth store
     } catch (error) {
-      toast.error('Invalid credentials. Please try again.');
+      console.error('❌ Login failed:', error);
+      // Error toast is now handled in the auth store
     } finally {
       setLoading(false);
     }

@@ -17,12 +17,27 @@ import { Users } from './pages/Users/Users';
 import { Audit } from './pages/Audit/Audit';
 
 function App() {
-  const { isAuthenticated, initializeAuth } = useAuthStore();
+  const { isAuthenticated, initializing, initializeAuth } = useAuthStore();
 
   // Initialize authentication on app startup
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
+
+  // Show loading screen while checking authentication
+  if (initializing) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <span className="text-white font-bold text-xl">ST</span>
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">SlabTrack</h2>
+          <p className="text-slate-400">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

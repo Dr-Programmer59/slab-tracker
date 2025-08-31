@@ -85,7 +85,7 @@ export function TopBar() {
               <User className="w-4 h-4 text-white" />
             </div>
             <span className="text-white text-sm font-medium hidden sm:block">
-              {user?.displayName}
+              {user?.displayName || 'User'}
             </span>
           </Menu.Button>
 

@@ -33,6 +33,8 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
   fetchStreams: async () => {
     set({ loading: true, error: null });
     try {
+      console.log('🌊 Fetching streams...');
+      
       const result = await streamService.getStreams();
       
       if (result.success) {
@@ -40,10 +42,10 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
         const streams: Stream[] = apiStreams.map((apiStream: any) => ({
           id: apiStream._id,
           title: apiStream.name,
-          streamer: 'SlabTrack User', // Default since API doesn't have streamer field
+          streamer: apiStream.createdBy?.displayName || 'SlabTrack User',
           date: new Date(apiStream.createdAt),
           status: mapApiStatus(apiStream.status),
-          totalItems: apiStream.cardCount || 0,
+          totalItems: apiStream.cards?.length || 0,
           totalCost: apiStream.totalValue || 0,
           grossSales: apiStream.soldPrice,
           fees: apiStream.fees,
@@ -53,11 +55,14 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
           updatedAt: new Date(apiStream.updatedAt),
         }));
         
+        console.log('✅ Streams fetched successfully:', streams.length);
         set({ streams, loading: false, error: null });
       } else {
+        console.error('❌ Failed to fetch streams:', result.error);
         set({ loading: false, error: result.error });
       }
     } catch (error) {
+      console.error('❌ Streams fetch error:', error);
       const errorMessage = handleApiError(error);
       set({ loading: false, error: errorMessage });
     }

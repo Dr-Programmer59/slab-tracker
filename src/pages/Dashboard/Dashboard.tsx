@@ -12,14 +12,22 @@ import {
 } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventory';
 import { useStreamsStore } from '../../store/streams';
+import { useAuthStore } from '../../store/auth';
 import { StatusChip } from '../../components/Common/StatusChip';
 import { KPICard } from './KPICard';
 import { RecentActivity } from './RecentActivity';
 import { InventoryChart } from './InventoryChart';
 
 export function Dashboard() {
+  const { user } = useAuthStore();
   const { cards } = useInventoryStore();
   const { streams } = useStreamsStore();
+
+  // Fetch data on component mount
+  React.useEffect(() => {
+    console.log('📊 Loading dashboard data...');
+    // Note: Individual stores will fetch their data when components mount
+  }, []);
 
   const kpis = {
     inventoryValue: cards

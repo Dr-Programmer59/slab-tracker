@@ -8,6 +8,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
+  initializing: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
@@ -15,11 +16,11 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
+  (set, get) => ({
       user: null,
       isAuthenticated: false,
       loading: false,
+      initializing: true,
 
       login: async (email: string, password: string) => {
         set({ loading: true });
@@ -37,12 +38,14 @@ export const useAuthStore = create<AuthState>()(
               createdAt: new Date(result.user.createdAt || Date.now()),
             };
             set({ user, isAuthenticated: true, loading: false });
+            toast.success(`Welcome back, ${user.displayName}!`);
           } else {
             set({ loading: false });
             throw new Error(result.error);
           }
         } catch (error) {
           set({ loading: false });
+          toast.error(error.message || 'Login failed');
           throw error;
         }
       },
@@ -60,35 +63,36 @@ export const useAuthStore = create<AuthState>()(
       },
 
       initializeAuth: async () => {
+        console.log('🔄 Initializing authentication...');
+        set({ initializing: true });
+        
         const token = localStorage.getItem('slabtrack_token');
-        if (token) {
-          try {
-            const result = await authService.getCurrentUser();
-            if (result.success) {
+          const isValid = await authService.initializeAuth();
+          
+          if (isValid) {
+            const storedUser = authService.getStoredUser();
+            if (storedUser) {
               const user: User = {
-                id: result.user.id || result.user._id,
-                email: result.user.email,
-                displayName: result.user.displayName,
-                role: result.user.role === 'admin' ? 'Admin' : 
-                      result.user.role === 'manager' ? 'Manager' : 'Member',
+                id: storedUser.id || storedUser._id,
+                email: storedUser.email,
+                displayName: storedUser.displayName,
+                role: storedUser.role === 'admin' ? 'Admin' : 
+                      storedUser.role === 'manager' ? 'Manager' : 'Member',
                 status: 'Active',
-                lastLogin: new Date(result.user.lastLoginAt || Date.now()),
-                createdAt: new Date(result.user.createdAt || Date.now()),
+                lastLogin: new Date(storedUser.lastLoginAt || Date.now()),
+                createdAt: new Date(storedUser.createdAt || Date.now()),
               };
-              set({ user, isAuthenticated: true });
-            } else {
-              authService.logout();
-              set({ user: null, isAuthenticated: false });
+              set({ user, isAuthenticated: true, initializing: false });
+              console.log('✅ Authentication restored for:', user.displayName);
             }
+          } else {
+            set({ user: null, isAuthenticated: false, initializing: false });
+            console.log('🔒 No valid session found');
           } catch (error) {
             authService.logout();
             set({ user: null, isAuthenticated: false });
           }
         }
-      },
-    }),
-    {
-      name: 'slabtrack-auth',
-    }
-  )
+          console.error('❌ Auth initialization failed:', error);
+    })
 );

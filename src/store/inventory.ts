@@ -96,13 +96,14 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         apiFilters.sport = filters.sport.join(',');
       }
       if (filters.yearRange) {
-        apiFilters.minYear = filters.yearRange[0];
-        apiFilters.maxYear = filters.yearRange[1];
+        apiFilters.year = filters.yearRange[0]; // Backend expects single year for now
       }
       if (filters.priceRange) {
         apiFilters.minValue = filters.priceRange[0];
         apiFilters.maxValue = filters.priceRange[1];
       }
+      
+      console.log('🔍 Fetching cards with filters:', apiFilters);
       
       const result = await cardService.getCards(apiFilters);
       
@@ -111,18 +112,21 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         const cards: Card[] = apiCards.map((apiCard: any) => ({
           id: apiCard._id,
           displayId: apiCard.displayId,
-          title: apiCard.cardName,
+          title: apiCard.cardName || 'Unknown Card',
           player: apiCard.playerName,
           sport: apiCard.sport,
           year: apiCard.year,
-          grade: apiCard.grade,
+          grade: apiCard.gradingCompany && apiCard.grade ? `${apiCard.gradingCompany} ${apiCard.grade}` : apiCard.grade,
           purchasePrice: apiCard.marketValue || 0,
           currentValue: apiCard.marketValue,
           status: mapApiStatus(apiCard.status),
           createdAt: new Date(apiCard.createdAt),
           updatedAt: new Date(apiCard.updatedAt),
-          notes: apiCard.description,
+          notes: apiCard.description || '',
+          imageUrl: apiCard.imageUrl,
         }));
+        
+        console.log('✅ Cards fetched successfully:', cards.length);
         
         set({
           cards,
@@ -131,12 +135,14 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
           error: null
         });
       } else {
+        console.error('❌ Failed to fetch cards:', result.error);
         set({ 
           loading: false, 
           error: result.error 
         });
       }
     } catch (error) {
+      console.error('❌ Cards fetch error:', error);
       const errorMessage = handleApiError(error);
       set({ 
         loading: false, 
