@@ -1,17 +1,43 @@
 import api from '../utils/api';
 
+interface StreamFilters {
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+interface StreamData {
+  name: string;
+  description?: string;
+  targetValue?: number;
+}
+
+interface PnLData {
+  soldPrice: number;
+  fees?: number;
+  shippingCost?: number;
+  buyerInfo?: any;
+  notes?: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
 export const streamService = {
   // GET ALL STREAMS
-  async getStreams(filters = {}) {
+  async getStreams(filters: StreamFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
-      if (filters.page) params.append('page', filters.page);
-      if (filters.limit) params.append('limit', filters.limit);
+      if (filters.page) params.append('page', filters.page.toString());
+      if (filters.limit) params.append('limit', filters.limit.toString());
       
       const response = await api.get(`/streams?${params}`);
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to fetch streams'
@@ -20,7 +46,7 @@ export const streamService = {
   },
 
   // CREATE NEW STREAM
-  async createStream(streamData) {
+  async createStream(streamData: StreamData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post('/streams', {
         name: streamData.name,
@@ -28,7 +54,7 @@ export const streamService = {
         targetValue: streamData.targetValue || 0
       });
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to create stream'
@@ -37,13 +63,13 @@ export const streamService = {
   },
 
   // ADD CARD TO STREAM - CRITICAL FUNCTIONALITY
-  async addCardToStream(streamId, cardDisplayId) {
+  async addCardToStream(streamId: string, cardDisplayId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.post(`/streams/${streamId}/cards`, {
         cardDisplayId: cardDisplayId // EXACT field name required
       });
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to add card to stream'
@@ -52,11 +78,11 @@ export const streamService = {
   },
 
   // REMOVE CARD FROM STREAM
-  async removeCardFromStream(streamId, cardId) {
+  async removeCardFromStream(streamId: string, cardId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.delete(`/streams/${streamId}/cards/${cardId}`);
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to remove card from stream'
@@ -65,7 +91,7 @@ export const streamService = {
   },
 
   // FINALIZE STREAM - CRITICAL FOR P&L
-  async finalizeStream(streamId, pnlData) {
+  async finalizeStream(streamId: string, pnlData: PnLData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post(`/streams/${streamId}/finalize`, {
         soldPrice: pnlData.soldPrice,
@@ -75,7 +101,7 @@ export const streamService = {
         notes: pnlData.notes || ''
       });
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to finalize stream'
@@ -84,11 +110,11 @@ export const streamService = {
   },
 
   // GET STREAM DETAILS
-  async getStreamDetails(streamId) {
+  async getStreamDetails(streamId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.get(`/streams/${streamId}`);
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Stream not found'

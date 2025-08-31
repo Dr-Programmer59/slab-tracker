@@ -2,7 +2,12 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 
-const ProtectedRoute = ({ children, requiredRole = null }) => {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRole?: string | null;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole = null }) => {
   const isAuthenticated = authService.isAuthenticated();
   const user = authService.getStoredUser();
 
@@ -10,11 +15,11 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user.role !== requiredRole && user.role !== 'admin') {
+  if (requiredRole && user?.role !== requiredRole && user?.role !== 'Admin') {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

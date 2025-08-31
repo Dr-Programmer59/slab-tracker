@@ -1,17 +1,44 @@
 import api from '../utils/api';
 
+interface ShipmentFilters {
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+interface ShipmentData {
+  buyerName: string;
+  buyerEmail: string;
+  shippingAddress: any;
+  cardIds: string[];
+  shippingMethod?: string;
+}
+
+interface TrackingData {
+  trackingNumber: string;
+  carrier: string;
+  shippedDate?: string;
+  estimatedDelivery?: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
 export const shippingService = {
   // GET ALL SHIPMENTS
-  async getShipments(filters = {}) {
+  async getShipments(filters: ShipmentFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
-      if (filters.page) params.append('page', filters.page);
-      if (filters.limit) params.append('limit', filters.limit);
+      if (filters.page) params.append('page', filters.page.toString());
+      if (filters.limit) params.append('limit', filters.limit.toString());
       
       const response = await api.get(`/shipments?${params}`);
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to fetch shipments'
@@ -20,7 +47,7 @@ export const shippingService = {
   },
 
   // CREATE MANUAL SHIPMENT
-  async createShipment(shipmentData) {
+  async createShipment(shipmentData: ShipmentData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post('/shipments', {
         buyerName: shipmentData.buyerName,
@@ -30,7 +57,7 @@ export const shippingService = {
         shippingMethod: shipmentData.shippingMethod || 'Standard'
       });
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to create shipment'
@@ -39,7 +66,7 @@ export const shippingService = {
   },
 
   // MARK SHIPMENT AS SHIPPED
-  async markAsShipped(shipmentId, trackingData) {
+  async markAsShipped(shipmentId: string, trackingData: TrackingData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post(`/shipments/${shipmentId}/ship`, {
         trackingNumber: trackingData.trackingNumber,
@@ -48,7 +75,7 @@ export const shippingService = {
         estimatedDelivery: trackingData.estimatedDelivery
       });
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to mark as shipped'
@@ -57,11 +84,11 @@ export const shippingService = {
   },
 
   // GET SHIPMENT DETAILS
-  async getShipmentDetails(shipmentId) {
+  async getShipmentDetails(shipmentId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.get(`/shipments/${shipmentId}`);
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Shipment not found'
@@ -70,7 +97,7 @@ export const shippingService = {
   },
 
   // DOWNLOAD SHIPPING LABEL
-  async downloadLabel(shipmentId) {
+  async downloadLabel(shipmentId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.get(`/shipments/${shipmentId}/label`, {
         responseType: 'blob'
@@ -86,7 +113,7 @@ export const shippingService = {
       link.remove();
       
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to download label'

@@ -1,4 +1,6 @@
-export const handleApiError = (error, showToast) => {
+import toast from 'react-hot-toast';
+
+export const handleApiError = (error: any): string => {
   console.error('API Error:', error);
 
   if (error.response) {
@@ -21,7 +23,7 @@ export const handleApiError = (error, showToast) => {
       case 422:
         // Validation errors
         if (data.error && data.error.details) {
-          return data.error.details.map(d => d.message).join(', ');
+          return data.error.details.map((d: any) => d.message).join(', ');
         }
         return data.error?.message || 'Validation error occurred.';
         

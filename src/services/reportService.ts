@@ -1,8 +1,23 @@
 import api from '../utils/api';
 
+interface ReportFilters {
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  userId?: string;
+  action?: string;
+  page?: number;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
 export const reportService = {
   // GET INVENTORY REPORT
-  async getInventoryReport(filters = {}) {
+  async getInventoryReport(filters: ReportFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
@@ -11,7 +26,7 @@ export const reportService = {
       
       const response = await api.get(`/reports/inventory?${params}`);
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to generate inventory report'
@@ -20,7 +35,7 @@ export const reportService = {
   },
 
   // GET FINANCIAL REPORT
-  async getFinancialReport(filters = {}) {
+  async getFinancialReport(filters: ReportFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
@@ -28,7 +43,7 @@ export const reportService = {
       
       const response = await api.get(`/reports/financial?${params}`);
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to generate financial report'
@@ -37,18 +52,18 @@ export const reportService = {
   },
 
   // GET AUDIT REPORT
-  async getAuditReport(filters = {}) {
+  async getAuditReport(filters: ReportFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
       if (filters.dateTo) params.append('dateTo', filters.dateTo);
       if (filters.userId) params.append('userId', filters.userId);
       if (filters.action) params.append('action', filters.action);
-      if (filters.page) params.append('page', filters.page);
+      if (filters.page) params.append('page', filters.page.toString());
       
       const response = await api.get(`/reports/audit?${params}`);
       return { success: true, data: response.data.data };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to generate audit report'
@@ -57,9 +72,15 @@ export const reportService = {
   },
 
   // EXPORT DATA AS CSV
-  async exportData(reportType, filters = {}) {
+  async exportData(reportType: string, filters: ReportFilters = {}): Promise<ApiResponse<any>> {
     try {
-      const params = new URLSearchParams(filters);
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined) {
+          params.append(key, value.toString());
+        }
+      });
+      
       const response = await api.get(`/reports/${reportType}/export?${params}`, {
         responseType: 'blob'
       });
@@ -74,7 +95,7 @@ export const reportService = {
       link.remove();
       
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Failed to export data'

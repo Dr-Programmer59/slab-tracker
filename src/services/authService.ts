@@ -1,8 +1,22 @@
 import api from '../utils/api';
+import type { User } from '../types';
+
+interface LoginResponse {
+  success: boolean;
+  user?: User;
+  token?: string;
+  error?: string;
+}
+
+interface UserResponse {
+  success: boolean;
+  user?: User;
+  error?: string;
+}
 
 export const authService = {
   // LOGIN FUNCTION - EXACT IMPLEMENTATION FOR JWT
-  async login(email, password) {
+  async login(email: string, password: string): Promise<LoginResponse> {
     try {
       console.log('🔑 Attempting login for:', email);
       
@@ -29,7 +43,7 @@ export const authService = {
       console.log('🔑 Token stored:', token.substring(0, 20) + '...');
       
       return { success: true, user, token };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Login error:', error);
       
       // Clear any partial auth data
@@ -44,7 +58,7 @@ export const authService = {
   },
 
   // GET CURRENT USER - CRITICAL FOR SESSION VALIDATION
-  async getCurrentUser() {
+  async getCurrentUser(): Promise<UserResponse> {
     try {
       const token = localStorage.getItem('slabtrack_token');
       if (!token) {
@@ -61,7 +75,7 @@ export const authService = {
       
       console.log('✅ Session verified for:', user.displayName);
       return { success: true, user };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Session verification failed:', error);
       
       // Clear invalid auth data
@@ -76,7 +90,7 @@ export const authService = {
   },
 
   // LOGOUT FUNCTION
-  logout() {
+  logout(): void {
     console.log('🚪 Logging out user');
     localStorage.removeItem('slabtrack_token');
     localStorage.removeItem('slabtrack_user');
@@ -85,14 +99,14 @@ export const authService = {
   },
 
   // CHECK IF AUTHENTICATED
-  isAuthenticated() {
+  isAuthenticated(): boolean {
     const token = localStorage.getItem('slabtrack_token');
     const user = this.getStoredUser();
     return !!(token && user);
   },
 
   // GET STORED USER
-  getStoredUser() {
+  getStoredUser(): User | null {
     try {
       const userStr = localStorage.getItem('slabtrack_user');
       return userStr ? JSON.parse(userStr) : null;
@@ -103,7 +117,7 @@ export const authService = {
   },
 
   // INITIALIZE AUTH ON APP STARTUP
-  async initializeAuth() {
+  async initializeAuth(): Promise<boolean> {
     const token = localStorage.getItem('slabtrack_token');
     
     if (!token) {
