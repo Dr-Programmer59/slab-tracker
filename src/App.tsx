@@ -47,8 +47,6 @@ function App() {
           />
         </>
       </ErrorBoundary>
-        </>
-      </ErrorBoundary>
     );
   }
 
