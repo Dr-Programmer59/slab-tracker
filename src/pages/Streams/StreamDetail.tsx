@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Lock, DollarSign, Calculator, Package } from 'lucide-react';
+import { ArrowLeft, Lock, DollarSign, Calculator, Package, Radio } from 'lucide-react';
 import { useStreamsStore } from '../../store/streams';
 import { useAuthStore } from '../../store/auth';
 import { Button } from '../../components/Common/Button';
@@ -39,6 +39,12 @@ export function StreamDetail() {
   };
 
   const calculatedProfit = finalizeData.grossSales - finalizeData.fees - stream.totalCost;
+
+  const getProfitColor = (profit: number) => {
+    if (profit > 0) return 'text-green-400';
+    if (profit < 0) return 'text-red-400';
+    return 'text-slate-400';
+  };
 
   return (
     <div className="space-y-6">

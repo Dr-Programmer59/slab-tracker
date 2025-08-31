@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { cardService } from '../services/cardService';
 import { handleApiError } from '../utils/errorHandler';
 import toast from 'react-hot-toast';
-import type { Card, Batch, FilterState } from '../types';
+import type { Card, FilterState, CardStatus } from '../types';
 
 interface InventoryState {
   cards: Card[];
@@ -21,11 +21,13 @@ interface InventoryState {
   fetchCards: () => Promise<void>;
   updateCardStatus: (id: string, status: string, metadata?: any) => Promise<void>;
   updateCard: (id: string, updates: Partial<Card>) => Promise<void>;
+  addCard: (cardData: Partial<Card>) => void;
+  deleteCard: (id: string) => void;
+  generateLabel: (id: string) => void;
   selectCard: (card: Card | null) => void;
   setDetailDrawerOpen: (open: boolean) => void;
 }
 
-// Map API status to frontend status
 const mapApiStatus = (apiStatus: string): CardStatus => {
   const statusMap: Record<string, CardStatus> = {
     'pending': 'Staged',
@@ -39,7 +41,6 @@ const mapApiStatus = (apiStatus: string): CardStatus => {
   return statusMap[apiStatus] || 'Staged';
 };
 
-// Map frontend status to API status
 const mapFrontendStatus = (frontendStatus: CardStatus): string => {
   const statusMap: Record<CardStatus, string> = {
     'Staged': 'pending',
@@ -71,9 +72,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   setFilters: (newFilters) => {
     set((state) => ({
       filters: { ...state.filters, ...newFilters },
-      pagination: { ...state.pagination, page: 1 } // Reset to first page
+      pagination: { ...state.pagination, page: 1 }
     }));
-    // Fetch cards with new filters
     get().fetchCards();
   },
 
@@ -82,7 +82,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     try {
       const { filters, pagination } = get();
       
-      // Build API filters
       const apiFilters: any = {
         page: pagination.page,
         limit: pagination.limit
@@ -96,18 +95,16 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         apiFilters.sport = filters.sport.join(',');
       }
       if (filters.yearRange) {
-        apiFilters.year = filters.yearRange[0]; // Backend expects single year for now
+        apiFilters.year = filters.yearRange[0];
       }
       if (filters.priceRange) {
         apiFilters.minValue = filters.priceRange[0];
         apiFilters.maxValue = filters.priceRange[1];
       }
       
-      console.log('🔍 Fetching cards with filters:', apiFilters);
-      
       const result = await cardService.getCards(apiFilters);
       
-      if (result.success) {
+      if (result.success && result.data) {
         const apiCards = result.data.cards || [];
         const cards: Card[] = apiCards.map((apiCard: any) => ({
           id: apiCard._id,
@@ -126,8 +123,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
           imageUrl: apiCard.imageUrl,
         }));
         
-        console.log('✅ Cards fetched successfully:', cards.length);
-        
         set({
           cards,
           pagination: result.data.pagination || pagination,
@@ -135,14 +130,12 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
           error: null
         });
       } else {
-        console.error('❌ Failed to fetch cards:', result.error);
         set({ 
           loading: false, 
-          error: result.error 
+          error: result.error || 'Failed to fetch cards'
         });
       }
     } catch (error) {
-      console.error('❌ Cards fetch error:', error);
       const errorMessage = handleApiError(error);
       set({ 
         loading: false, 
@@ -157,7 +150,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       const result = await cardService.updateCardStatus(id, apiStatus, metadata);
       
       if (result.success) {
-        // Update local state
         set((state) => ({
           cards: state.cards.map(card => 
             card.id === id 
@@ -167,7 +159,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         }));
         toast.success('Card status updated successfully');
       } else {
-        toast.error(result.error);
+        toast.error(result.error || 'Failed to update status');
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -180,7 +172,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       const result = await cardService.updateCard(id, updates);
       
       if (result.success) {
-        // Update local state
         set((state) => ({
           cards: state.cards.map(card => 
             card.id === id 
@@ -190,11 +181,75 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         }));
         toast.success('Card updated successfully');
       } else {
-        toast.error(result.error);
+        toast.error(result.error || 'Failed to update card');
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
       toast.error(errorMessage);
+    }
+  },
+
+  addCard: (cardData) => {
+    const newCard: Card = {
+      id: Math.random().toString(36).substr(2, 9),
+      displayId: cardData.displayId || `ST-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 999999)).padStart(6, '0')}`,
+      title: cardData.title || '',
+      player: cardData.player || '',
+      sport: cardData.sport || 'Baseball',
+      year: cardData.year || new Date().getFullYear(),
+      grade: cardData.grade,
+      purchasePrice: cardData.purchasePrice || 0,
+      currentValue: cardData.currentValue,
+      status: (cardData.status as CardStatus) || 'Staged',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      notes: cardData.notes,
+      imageUrl: cardData.imageUrl,
+    };
+
+    set((state) => ({
+      cards: [newCard, ...state.cards]
+    }));
+  },
+
+  deleteCard: (id) => {
+    set((state) => ({
+      cards: state.cards.filter(card => card.id !== id)
+    }));
+  },
+
+  generateLabel: (id) => {
+    const { cards } = get();
+    const card = cards.find(c => c.id === id);
+    if (card) {
+      const labelHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+              .label { width: 2in; height: 1in; border: 1px solid #000; padding: 8px; }
+              .display-id { font-size: 16px; font-weight: bold; }
+              .title { font-size: 12px; margin: 4px 0; }
+              .details { font-size: 10px; color: #666; }
+            </style>
+          </head>
+          <body>
+            <div class="label">
+              <div class="display-id">${card.displayId}</div>
+              <div class="title">${card.title}</div>
+              <div class="details">${card.player} • ${card.sport} • ${card.year}</div>
+            </div>
+          </body>
+        </html>
+      `;
+      
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(labelHtml);
+        printWindow.document.close();
+        printWindow.print();
+      }
     }
   },
 

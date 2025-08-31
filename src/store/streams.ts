@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { streamService } from '../services/streamService';
 import { handleApiError } from '../utils/errorHandler';
 import toast from 'react-hot-toast';
-import type { Stream } from '../types';
+import type { Stream, StreamStatus } from '../types';
 
 interface StreamsState {
   streams: Stream[];
@@ -11,14 +11,15 @@ interface StreamsState {
   selectedStream: Stream | null;
   fetchStreams: () => Promise<void>;
   createStream: (streamData: { name: string; description?: string; targetValue?: number }) => Promise<void>;
-  finalizeStream: (id: string, pnlData: any) => Promise<void>;
+  lockStream: (id: string) => void;
+  finalizeStream: (id: string, grossSales: number, fees: number) => Promise<void>;
   selectStream: (stream: Stream | null) => void;
 }
 
-// Map API status to frontend status
 const mapApiStatus = (apiStatus: string): StreamStatus => {
   const statusMap: Record<string, StreamStatus> = {
     'draft': 'Draft',
+    'locked': 'Locked',
     'finalized': 'Finalized'
   };
   return statusMap[apiStatus] || 'Draft';
@@ -33,11 +34,9 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
   fetchStreams: async () => {
     set({ loading: true, error: null });
     try {
-      console.log('🌊 Fetching streams...');
-      
       const result = await streamService.getStreams();
       
-      if (result.success) {
+      if (result.success && result.data) {
         const apiStreams = result.data.streams || [];
         const streams: Stream[] = apiStreams.map((apiStream: any) => ({
           id: apiStream._id,
@@ -55,14 +54,11 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
           updatedAt: new Date(apiStream.updatedAt),
         }));
         
-        console.log('✅ Streams fetched successfully:', streams.length);
         set({ streams, loading: false, error: null });
       } else {
-        console.error('❌ Failed to fetch streams:', result.error);
-        set({ loading: false, error: result.error });
+        set({ loading: false, error: result.error || 'Failed to fetch streams' });
       }
     } catch (error) {
-      console.error('❌ Streams fetch error:', error);
       const errorMessage = handleApiError(error);
       set({ loading: false, error: errorMessage });
     }
@@ -72,7 +68,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
     try {
       const result = await streamService.createStream(streamData);
       
-      if (result.success) {
+      if (result.success && result.data) {
         const apiStream = result.data.stream;
         const newStream: Stream = {
           id: apiStream._id,
@@ -93,7 +89,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
         
         toast.success('Stream created successfully');
       } else {
-        toast.error(result.error);
+        toast.error(result.error || 'Failed to create stream');
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -101,11 +97,29 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
     }
   },
 
-  finalizeStream: async (id, pnlData) => {
+  lockStream: (id) => {
+    set((state) => ({
+      streams: state.streams.map(stream => 
+        stream.id === id 
+          ? { ...stream, status: 'Locked' as StreamStatus }
+          : stream
+      )
+    }));
+    toast.success('Stream locked successfully');
+  },
+
+  finalizeStream: async (id, grossSales, fees) => {
     try {
+      const pnlData = {
+        soldPrice: grossSales,
+        fees: fees,
+        shippingCost: 0,
+        notes: ''
+      };
+      
       const result = await streamService.finalizeStream(id, pnlData);
       
-      if (result.success) {
+      if (result.success && result.data) {
         const apiStream = result.data.stream;
         set((state) => ({
           streams: state.streams.map(stream => 
@@ -124,7 +138,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
         
         toast.success('Stream finalized successfully');
       } else {
-        toast.error(result.error);
+        toast.error(result.error || 'Failed to finalize stream');
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
