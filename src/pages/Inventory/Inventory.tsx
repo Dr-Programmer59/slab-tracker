@@ -40,11 +40,6 @@ export function Inventory() {
     fetchCards();
   }, [fetchCards]);
 
-  // Fetch cards on component mount
-  React.useEffect(() => {
-    fetchCards();
-  }, [fetchCards]);
-
   const handleCardClick = (card: any) => {
     selectCard(card);
     setDetailDrawerOpen(true);
@@ -65,16 +60,6 @@ export function Inventory() {
     return () => clearTimeout(timer);
   }, [searchInput, filters.search]);
 
-  // Debounced search
-  const [searchInput, setSearchInput] = useState(filters.search);
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== filters.search) {
-        handleSearch(searchInput);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchInput, filters.search]);
   return (
     <div className="space-y-6">
       {/* Header */}
