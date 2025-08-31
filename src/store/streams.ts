@@ -1,89 +1,129 @@
 import { create } from 'zustand';
+import { streamService } from '../services/streamService';
+import { handleApiError } from '../utils/errorHandler';
+import toast from 'react-hot-toast';
 import type { Stream } from '../types';
 
 interface StreamsState {
   streams: Stream[];
+  loading: boolean;
+  error: string | null;
   selectedStream: Stream | null;
-  createStream: (stream: Omit<Stream, 'id' | 'createdAt' | 'updatedAt' | 'cards'>) => void;
-  updateStream: (id: string, updates: Partial<Stream>) => void;
-  lockStream: (id: string) => void;
-  finalizeStream: (id: string, grossSales: number, fees: number) => void;
+  fetchStreams: () => Promise<void>;
+  createStream: (streamData: { name: string; description?: string; targetValue?: number }) => Promise<void>;
+  finalizeStream: (id: string, pnlData: any) => Promise<void>;
   selectStream: (stream: Stream | null) => void;
 }
 
-const demoStreams: Stream[] = [
-  {
-    id: '1',
-    title: 'January 2024 Live Break',
-    streamer: 'CardBreaker Pro',
-    date: new Date('2024-01-20'),
-    status: 'Draft',
-    totalItems: 8,
-    totalCost: 450.00,
-    cards: [],
-    createdAt: new Date('2024-01-18'),
-    updatedAt: new Date('2024-01-20'),
-  },
-  {
-    id: '2',
-    title: 'Holiday Special Stream',
-    streamer: 'CardBreaker Pro',
-    date: new Date('2023-12-25'),
-    status: 'Finalized',
-    totalItems: 12,
-    totalCost: 680.00,
-    grossSales: 920.00,
-    fees: 45.00,
-    profit: 195.00,
-    cards: [],
-    createdAt: new Date('2023-12-20'),
-    updatedAt: new Date('2023-12-26'),
-  },
-];
+// Map API status to frontend status
+const mapApiStatus = (apiStatus: string): StreamStatus => {
+  const statusMap: Record<string, StreamStatus> = {
+    'draft': 'Draft',
+    'finalized': 'Finalized'
+  };
+  return statusMap[apiStatus] || 'Draft';
+};
 
 export const useStreamsStore = create<StreamsState>((set, get) => ({
-  streams: demoStreams,
+  streams: [],
+  loading: false,
+  error: null,
   selectedStream: null,
 
-  createStream: (streamData) => {
-    const newStream: Stream = {
-      ...streamData,
-      id: Math.random().toString(36).substr(2, 9),
-      cards: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    set((state) => ({
-      streams: [...state.streams, newStream]
-    }));
+  fetchStreams: async () => {
+    set({ loading: true, error: null });
+    try {
+      const result = await streamService.getStreams();
+      
+      if (result.success) {
+        const apiStreams = result.data.streams || [];
+        const streams: Stream[] = apiStreams.map((apiStream: any) => ({
+          id: apiStream._id,
+          title: apiStream.name,
+          streamer: 'SlabTrack User', // Default since API doesn't have streamer field
+          date: new Date(apiStream.createdAt),
+          status: mapApiStatus(apiStream.status),
+          totalItems: apiStream.cardCount || 0,
+          totalCost: apiStream.totalValue || 0,
+          grossSales: apiStream.soldPrice,
+          fees: apiStream.fees,
+          profit: apiStream.profit,
+          cards: apiStream.cards || [],
+          createdAt: new Date(apiStream.createdAt),
+          updatedAt: new Date(apiStream.updatedAt),
+        }));
+        
+        set({ streams, loading: false, error: null });
+      } else {
+        set({ loading: false, error: result.error });
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      set({ loading: false, error: errorMessage });
+    }
   },
 
-  updateStream: (id, updates) => {
-    set((state) => ({
-      streams: state.streams.map(stream => 
-        stream.id === id 
-          ? { ...stream, ...updates, updatedAt: new Date() }
-          : stream
-      )
-    }));
+  createStream: async (streamData) => {
+    try {
+      const result = await streamService.createStream(streamData);
+      
+      if (result.success) {
+        const apiStream = result.data.stream;
+        const newStream: Stream = {
+          id: apiStream._id,
+          title: apiStream.name,
+          streamer: 'SlabTrack User',
+          date: new Date(apiStream.createdAt),
+          status: mapApiStatus(apiStream.status),
+          totalItems: apiStream.cardCount || 0,
+          totalCost: apiStream.totalValue || 0,
+          cards: apiStream.cards || [],
+          createdAt: new Date(apiStream.createdAt),
+          updatedAt: new Date(apiStream.updatedAt),
+        };
+        
+        set((state) => ({
+          streams: [...state.streams, newStream]
+        }));
+        
+        toast.success('Stream created successfully');
+      } else {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast.error(errorMessage);
+    }
   },
 
-  lockStream: (id) => {
-    const { updateStream } = get();
-    updateStream(id, { status: 'Locked' });
-  },
-
-  finalizeStream: (id, grossSales, fees) => {
-    const { streams, updateStream } = get();
-    const stream = streams.find(s => s.id === id);
-    if (stream) {
-      const profit = grossSales - fees - stream.totalCost;
-      updateStream(id, {
-        status: 'Finalized',
-        grossSales,
-        fees,
-        profit,
-      });
+  finalizeStream: async (id, pnlData) => {
+    try {
+      const result = await streamService.finalizeStream(id, pnlData);
+      
+      if (result.success) {
+        const apiStream = result.data.stream;
+        set((state) => ({
+          streams: state.streams.map(stream => 
+            stream.id === id 
+              ? {
+                  ...stream,
+                  status: mapApiStatus(apiStream.status),
+                  grossSales: apiStream.soldPrice,
+                  fees: apiStream.fees,
+                  profit: apiStream.profit,
+                  updatedAt: new Date(apiStream.updatedAt)
+                }
+              : stream
+          )
+        }));
+        
+        toast.success('Stream finalized successfully');
+      } else {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast.error(errorMessage);
     }
   },
 

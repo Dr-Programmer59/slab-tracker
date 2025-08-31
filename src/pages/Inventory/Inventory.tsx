@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, Plus, Eye } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventory';
+import { usePermissions } from '../../hooks/usePermissions';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
+import LoadingSpinner from '../../components/Common/LoadingSpinner';
+import ErrorMessage from '../../components/Common/ErrorMessage';
 import { Drawer } from '../../components/Common/Drawer';
 import { Modal } from '../../components/Common/Modal';
 import { CardDetail } from './CardDetail';
@@ -12,19 +16,27 @@ import { FiltersPanel } from './FiltersPanel';
 
 export function Inventory() {
   const { 
+    cards,
+    loading,
+    error,
+    pagination,
     filters, 
     setFilters, 
-    getFilteredCards, 
+    fetchCards,
     selectedCard, 
     isDetailDrawerOpen, 
     selectCard, 
     setDetailDrawerOpen 
   } = useInventoryStore();
   
+  const { canEditCards } = usePermissions();
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const filteredCards = getFilteredCards();
+  // Fetch cards on component mount
+  useEffect(() => {
+    fetchCards();
+  }, [fetchCards]);
 
   const handleCardClick = (card: any) => {
     selectCard(card);
@@ -42,7 +54,7 @@ export function Inventory() {
         <div>
           <h1 className="text-2xl font-bold text-white">Inventory</h1>
           <p className="text-slate-400 mt-1">
-            {filteredCards.length} cards {filters.search && `matching "${filters.search}"`}
+            {pagination.total} cards {filters.search && `matching "${filters.search}"`}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -53,10 +65,12 @@ export function Inventory() {
             <Filter className="w-4 h-4" />
             Filters
           </Button>
-          <Button onClick={() => setShowAddModal(true)}>
-            <Plus className="w-4 h-4" />
-            Add Card
-          </Button>
+          {canEditCards() && (
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus className="w-4 h-4" />
+              Add Card
+            </Button>
+          )}
         </div>
       </motion.div>
 
@@ -77,7 +91,28 @@ export function Inventory() {
         />
       </motion.div>
 
+      {/* Loading State */}
+      {loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <LoadingSpinner message="Loading cards..." />
+        </motion.div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <ErrorMessage error={error} onRetry={fetchCards} />
+        </motion.div>
+      )}
+
       {/* Cards Table */}
+      {!loading && !error && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -98,7 +133,7 @@ export function Inventory() {
               </tr>
             </thead>
             <tbody>
-              {filteredCards.map((card, index) => (
+              {cards.map((card, index) => (
                 <motion.tr
                   key={card.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -163,6 +198,46 @@ export function Inventory() {
           </table>
         </div>
       </motion.div>
+      )}
+
+      {/* Pagination */}
+      {!loading && !error && pagination.pages > 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-xl p-4"
+        >
+          <div className="text-slate-400 text-sm">
+            Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} cards
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={pagination.page <= 1}
+              onClick={() => {
+                // TODO: Implement pagination
+              }}
+            >
+              Previous
+            </Button>
+            <span className="text-slate-300 text-sm">
+              Page {pagination.page} of {pagination.pages}
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={pagination.page >= pagination.pages}
+              onClick={() => {
+                // TODO: Implement pagination
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Filters Modal */}
       <Modal

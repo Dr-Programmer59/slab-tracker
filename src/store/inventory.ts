@@ -1,139 +1,195 @@
 import { create } from 'zustand';
+import { cardService } from '../services/cardService';
+import { handleApiError } from '../utils/errorHandler';
+import toast from 'react-hot-toast';
 import type { Card, Batch, FilterState } from '../types';
 
 interface InventoryState {
   cards: Card[];
-  batches: Batch[];
+  loading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
   filters: FilterState;
   selectedCard: Card | null;
   isDetailDrawerOpen: boolean;
   setFilters: (filters: Partial<FilterState>) => void;
-  addCard: (card: Omit<Card, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateCard: (id: string, updates: Partial<Card>) => void;
-  deleteCard: (id: string) => void;
-  markArrived: (id: string) => void;
+  fetchCards: () => Promise<void>;
+  updateCardStatus: (id: string, status: string, metadata?: any) => Promise<void>;
+  updateCard: (id: string, updates: Partial<Card>) => Promise<void>;
   selectCard: (card: Card | null) => void;
   setDetailDrawerOpen: (open: boolean) => void;
-  getFilteredCards: () => Card[];
-  generateLabel: (cardId: string) => void;
 }
 
-// Demo data
-const demoCards: Card[] = [
-  {
-    id: '1',
-    displayId: 'ST-2024-000001',
-    title: '2023 Topps Chrome',
-    player: 'Ronald Acuña Jr.',
-    sport: 'Baseball',
-    year: 2023,
-    grade: 'PSA 10',
-    purchasePrice: 125.00,
-    currentValue: 180.00,
-    status: 'Available',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
-    imageUrl: 'https://images.pexels.com/photos/262506/pexels-photo-262506.jpeg?auto=compress&cs=tinysrgb&w=400'
-  },
-  {
-    id: '2',
-    displayId: 'ST-2024-000002',
-    title: '2022 Panini Prizm',
-    player: 'Ja Morant',
-    sport: 'Basketball',
-    year: 2022,
-    grade: 'BGS 9.5',
-    purchasePrice: 85.00,
-    currentValue: 120.00,
-    status: 'Sold',
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-20'),
-  },
-  {
-    id: '3',
-    displayId: 'ST-2024-000003',
-    title: '2023 Bowman Chrome',
-    player: 'Gunnar Henderson',
-    sport: 'Baseball',
-    year: 2023,
-    grade: 'PSA 9',
-    purchasePrice: 45.00,
-    currentValue: 65.00,
-    status: 'AllocatedToStream',
-    createdAt: new Date('2024-01-12'),
-    updatedAt: new Date('2024-01-18'),
-  },
-];
+// Map API status to frontend status
+const mapApiStatus = (apiStatus: string): CardStatus => {
+  const statusMap: Record<string, CardStatus> = {
+    'pending': 'Staged',
+    'received': 'Arrived',
+    'graded': 'Available',
+    'inventory': 'Available',
+    'reserved': 'AllocatedToStream',
+    'sold': 'Sold',
+    'shipped': 'Shipped'
+  };
+  return statusMap[apiStatus] || 'Staged';
+};
 
-const demoBatches: Batch[] = [
-  {
-    id: '1',
-    name: 'January 2024 Import',
-    uploadedBy: 'admin@slabtrack.com',
-    uploadedAt: new Date('2024-01-15'),
-    totalRows: 25,
-    processedRows: 23,
-    status: 'Open',
-  },
-  {
-    id: '2',
-    name: 'December 2023 Import',
-    uploadedBy: 'manager@slabtrack.com',
-    uploadedAt: new Date('2023-12-28'),
-    totalRows: 18,
-    processedRows: 18,
-    status: 'Locked',
-  },
-];
+// Map frontend status to API status
+const mapFrontendStatus = (frontendStatus: CardStatus): string => {
+  const statusMap: Record<CardStatus, string> = {
+    'Staged': 'pending',
+    'Arrived': 'received',
+    'Available': 'inventory',
+    'AllocatedToStream': 'reserved',
+    'Sold': 'sold',
+    'ToShip': 'sold',
+    'Packed': 'sold',
+    'Shipped': 'shipped'
+  };
+  return statusMap[frontendStatus] || 'pending';
+};
 
 export const useInventoryStore = create<InventoryState>((set, get) => ({
-  cards: demoCards,
-  batches: demoBatches,
+  cards: [],
+  loading: false,
+  error: null,
+  pagination: {
+    page: 1,
+    limit: 25,
+    total: 0,
+    pages: 0
+  },
   filters: { search: '' },
   selectedCard: null,
   isDetailDrawerOpen: false,
 
   setFilters: (newFilters) => {
     set((state) => ({
-      filters: { ...state.filters, ...newFilters }
+      filters: { ...state.filters, ...newFilters },
+      pagination: { ...state.pagination, page: 1 } // Reset to first page
     }));
+    // Fetch cards with new filters
+    get().fetchCards();
   },
 
-  addCard: (cardData) => {
-    const newCard: Card = {
-      ...cardData,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    set((state) => ({
-      cards: [...state.cards, newCard]
-    }));
+  fetchCards: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { filters, pagination } = get();
+      
+      // Build API filters
+      const apiFilters: any = {
+        page: pagination.page,
+        limit: pagination.limit
+      };
+      
+      if (filters.search) apiFilters.search = filters.search;
+      if (filters.status && filters.status.length > 0) {
+        apiFilters.status = filters.status.map(mapFrontendStatus).join(',');
+      }
+      if (filters.sport && filters.sport.length > 0) {
+        apiFilters.sport = filters.sport.join(',');
+      }
+      if (filters.yearRange) {
+        apiFilters.minYear = filters.yearRange[0];
+        apiFilters.maxYear = filters.yearRange[1];
+      }
+      if (filters.priceRange) {
+        apiFilters.minValue = filters.priceRange[0];
+        apiFilters.maxValue = filters.priceRange[1];
+      }
+      
+      const result = await cardService.getCards(apiFilters);
+      
+      if (result.success) {
+        const apiCards = result.data.cards || [];
+        const cards: Card[] = apiCards.map((apiCard: any) => ({
+          id: apiCard._id,
+          displayId: apiCard.displayId,
+          title: apiCard.cardName,
+          player: apiCard.playerName,
+          sport: apiCard.sport,
+          year: apiCard.year,
+          grade: apiCard.grade,
+          purchasePrice: apiCard.marketValue || 0,
+          currentValue: apiCard.marketValue,
+          status: mapApiStatus(apiCard.status),
+          createdAt: new Date(apiCard.createdAt),
+          updatedAt: new Date(apiCard.updatedAt),
+          notes: apiCard.description,
+        }));
+        
+        set({
+          cards,
+          pagination: result.data.pagination || pagination,
+          loading: false,
+          error: null
+        });
+      } else {
+        set({ 
+          loading: false, 
+          error: result.error 
+        });
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      set({ 
+        loading: false, 
+        error: errorMessage 
+      });
+    }
   },
 
-  updateCard: (id, updates) => {
-    set((state) => ({
-      cards: state.cards.map(card => 
-        card.id === id 
-          ? { ...card, ...updates, updatedAt: new Date() }
-          : card
-      )
-    }));
+  updateCardStatus: async (id, status, metadata = {}) => {
+    try {
+      const apiStatus = mapFrontendStatus(status as CardStatus);
+      const result = await cardService.updateCardStatus(id, apiStatus, metadata);
+      
+      if (result.success) {
+        // Update local state
+        set((state) => ({
+          cards: state.cards.map(card => 
+            card.id === id 
+              ? { ...card, status: status as CardStatus, updatedAt: new Date() }
+              : card
+          )
+        }));
+        toast.success('Card status updated successfully');
+      } else {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast.error(errorMessage);
+    }
   },
 
-  deleteCard: (id) => {
-    set((state) => ({
-      cards: state.cards.filter(card => card.id !== id),
-      selectedCard: state.selectedCard?.id === id ? null : state.selectedCard
-    }));
-  },
-
-  markArrived: (id) => {
-    const { updateCard } = get();
-    updateCard(id, { 
-      status: 'Arrived',
-      arrivedAt: new Date()
-    });
+  updateCard: async (id, updates) => {
+    try {
+      const result = await cardService.updateCard(id, updates);
+      
+      if (result.success) {
+        // Update local state
+        set((state) => ({
+          cards: state.cards.map(card => 
+            card.id === id 
+              ? { ...card, ...updates, updatedAt: new Date() }
+              : card
+          )
+        }));
+        toast.success('Card updated successfully');
+      } else {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast.error(errorMessage);
+    }
   },
 
   selectCard: (card) => {
@@ -145,33 +201,5 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     if (!open) {
       set({ selectedCard: null });
     }
-  },
-
-  getFilteredCards: () => {
-    const { cards, filters } = get();
-    return cards.filter(card => {
-      if (filters.search && !card.title.toLowerCase().includes(filters.search.toLowerCase()) &&
-          !card.player.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
-      }
-      if (filters.status && filters.status.length > 0 && !filters.status.includes(card.status)) {
-        return false;
-      }
-      if (filters.sport && filters.sport.length > 0 && !filters.sport.includes(card.sport)) {
-        return false;
-      }
-      if (filters.yearRange && (card.year < filters.yearRange[0] || card.year > filters.yearRange[1])) {
-        return false;
-      }
-      if (filters.priceRange && (card.purchasePrice < filters.priceRange[0] || card.purchasePrice > filters.priceRange[1])) {
-        return false;
-      }
-      return true;
-    });
-  },
-
-  generateLabel: (cardId) => {
-    // In real app, this would generate and open a PDF label
-    console.log('Generating label for card:', cardId);
   },
 }));

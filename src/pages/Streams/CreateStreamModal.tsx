@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/Common/Modal';
 import { Button } from '../../components/Common/Button';
 import { useStreamsStore } from '../../store/streams';
-import toast from 'react-hot-toast';
 
 interface CreateStreamModalProps {
   isOpen: boolean;
@@ -12,28 +11,20 @@ interface CreateStreamModalProps {
 export function CreateStreamModal({ isOpen, onClose }: CreateStreamModalProps) {
   const { createStream } = useStreamsStore();
   const [formData, setFormData] = useState({
-    title: '',
-    streamer: '',
-    date: new Date().toISOString().split('T')[0],
+    name: '',
+    description: '',
+    targetValue: 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    createStream({
-      ...formData,
-      date: new Date(formData.date),
-      status: 'Draft',
-      totalItems: 0,
-      totalCost: 0,
-    });
-
-    toast.success('Stream created successfully!');
+    createStream(formData);
     onClose();
     setFormData({
-      title: '',
-      streamer: '',
-      date: new Date().toISOString().split('T')[0],
+      name: '',
+      description: '',
+      targetValue: 0,
     });
   };
 
@@ -41,39 +32,40 @@ export function CreateStreamModal({ isOpen, onClose }: CreateStreamModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Stream">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Stream Title</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Stream Name</label>
           <input
             type="text"
             required
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
             placeholder="e.g., February 2024 Live Break"
           />
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Streamer</label>
-          <input
-            type="text"
-            required
-            value={formData.streamer}
-            onChange={(e) => setFormData({ ...formData, streamer: e.target.value })}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
-            placeholder="e.g., CardBreaker Pro"
+          <label className="block text-sm font-medium text-slate-300 mb-2">Description</label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white resize-none"
+            rows={3}
+            placeholder="Optional description..."
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Stream Date</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Target Value</label>
           <input
-            type="date"
-            required
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            type="number"
+            step="0.01"
+            value={formData.targetValue}
+            onChange={(e) => setFormData({ ...formData, targetValue: parseFloat(e.target.value) || 0 })}
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
+            placeholder="0.00"
           />
         </div>
+
 
         <div className="flex gap-3 pt-4">
           <Button variant="secondary" type="button" onClick={onClose} className="flex-1">

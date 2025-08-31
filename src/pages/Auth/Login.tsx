@@ -13,9 +13,9 @@ export function Login() {
   const { login } = useAuthStore();
 
   const demoAccounts = [
-    { email: 'admin@slabtrack.com', password: 'password123', role: 'Admin' },
-    { email: 'manager@slabtrack.com', password: 'password123', role: 'Manager' },
-    { email: 'member@slabtrack.com', password: 'password123', role: 'Member' },
+    { email: 'admin@slabtrack.com', password: 'admin123', role: 'Admin' },
+    { email: 'manager@slabtrack.com', password: 'manager123', role: 'Manager' },
+    { email: 'member@slabtrack.com', password: 'member123', role: 'Member' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

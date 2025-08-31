@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Calendar, DollarSign, Radio, FileText, Play, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStreamsStore } from '../../store/streams';
+import { usePermissions } from '../../hooks/usePermissions';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
+import LoadingSpinner from '../../components/Common/LoadingSpinner';
+import ErrorMessage from '../../components/Common/ErrorMessage';
 import { Modal } from '../../components/Common/Modal';
 import { CreateStreamModal } from './CreateStreamModal';
 
 export function Streams() {
   const navigate = useNavigate();
-  const { streams } = useStreamsStore();
+  const { streams, loading, error, fetchStreams } = useStreamsStore();
+  const { canFinalizeStreams } = usePermissions();
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Fetch streams on component mount
+  useEffect(() => {
+    fetchStreams();
+  }, [fetchStreams]);
 
   const getProfit = (stream: any) => {
     if (stream.profit !== undefined) return stream.profit;
@@ -38,13 +48,36 @@ export function Streams() {
             Manage live selling sessions and track profit/loss
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)}>
-          <Plus className="w-4 h-4" />
-          Create Stream
-        </Button>
+        {canFinalizeStreams() && (
+          <Button onClick={() => setShowCreateModal(true)}>
+            <Plus className="w-4 h-4" />
+            Create Stream
+          </Button>
+        )}
       </motion.div>
 
+      {/* Loading State */}
+      {loading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <LoadingSpinner message="Loading streams..." />
+        </motion.div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <ErrorMessage error={error} onRetry={fetchStreams} />
+        </motion.div>
+      )}
+
       {/* Streams Table */}
+      {!loading && !error && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -122,7 +155,7 @@ export function Streams() {
                         <FileText className="w-4 h-4" />
                         View
                       </Button>
-                      {stream.status === 'Draft' && (
+                      {stream.status === 'Draft' && canFinalizeStreams() && (
                         <Button
                           variant="secondary"
                           size="sm"
@@ -143,6 +176,7 @@ export function Streams() {
           </table>
         </div>
       </motion.div>
+      )}
 
       {/* Create Stream Modal */}
       <CreateStreamModal 

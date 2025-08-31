@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/auth';
@@ -16,7 +17,12 @@ import { Users } from './pages/Users/Users';
 import { Audit } from './pages/Audit/Audit';
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, initializeAuth } = useAuthStore();
+
+  // Initialize authentication on app startup
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   if (!isAuthenticated) {
     return (
