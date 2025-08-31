@@ -81,8 +81,6 @@ function App() {
         />
       </Router>
     </ErrorBoundary>
-      </Router>
-    </ErrorBoundary>
   );
 }
 
