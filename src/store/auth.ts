@@ -102,34 +102,4 @@ export const useAuthStore = create<AuthState>()(
         }
       }
     })
-  )
-);
-          const isValid = await authService.initializeAuth();
-          
-          if (isValid) {
-            const storedUser = authService.getStoredUser();
-            if (storedUser) {
-              const user: User = {
-                id: storedUser.id || storedUser._id,
-                email: storedUser.email,
-                displayName: storedUser.displayName,
-                role: storedUser.role === 'admin' ? 'Admin' : 
-                      storedUser.role === 'manager' ? 'Manager' : 'Member',
-                status: 'Active',
-                lastLogin: new Date(storedUser.lastLoginAt || Date.now()),
-                createdAt: new Date(storedUser.createdAt || Date.now()),
-              };
-              set({ user, isAuthenticated: true, initializing: false });
-              console.log('✅ Authentication restored for:', user.displayName);
-            }
-          } else {
-            set({ user: null, isAuthenticated: false, initializing: false });
-            console.log('🔒 No valid session found');
-          } catch (error) {
-            authService.logout();
-            set({ user: null, isAuthenticated: false });
-          }
-        }
-          console.error('❌ Auth initialization failed:', error);
-    })
 );
