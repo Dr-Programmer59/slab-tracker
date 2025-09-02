@@ -29,8 +29,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           id: result.user.id || (result.user as any)._id,
           email: result.user.email,
           displayName: result.user.displayName,
-          role: result.user.role === 'admin' ? 'Admin' : 
-                result.user.role === 'manager' ? 'Manager' : 'Member',
+          role: result.user.role, // Keep as lowercase from API
           status: 'Active',
           lastLogin: new Date((result.user as any).lastLoginAt || Date.now()),
           createdAt: new Date((result.user as any).createdAt || Date.now()),
@@ -75,8 +74,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               id: storedUser.id || (storedUser as any)._id,
               email: storedUser.email,
               displayName: storedUser.displayName,
-              role: storedUser.role === 'admin' ? 'Admin' : 
-                    storedUser.role === 'manager' ? 'Manager' : 'Member',
+              role: storedUser.role, // Keep as lowercase from API
               status: 'Active',
               lastLogin: new Date((storedUser as any).lastLoginAt || Date.now()),
               createdAt: new Date((storedUser as any).createdAt || Date.now()),

@@ -10,9 +10,9 @@ export function TopBar() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'Admin': return 'bg-red-600';
-      case 'Manager': return 'bg-amber-600';
-      case 'Member': return 'bg-green-600';
+      case 'admin': return 'bg-red-600';
+      case 'manager': return 'bg-amber-600';
+      case 'member': return 'bg-green-600';
       default: return 'bg-gray-600';
     }
   };

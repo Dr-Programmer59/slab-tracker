@@ -82,7 +82,7 @@ export type CardStatus =
 
 export type StreamStatus = 'Draft' | 'Locked' | 'Finalized';
 export type BatchStatus = 'Open' | 'Locked' | 'Closed';
-export type UserRole = 'Admin' | 'Manager' | 'Member';
+export type UserRole = 'admin' | 'manager' | 'member';
 export type UserStatus = 'Active' | 'Disabled';
 
 // UI types

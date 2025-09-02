@@ -11,7 +11,7 @@ const demoUsers = [
     id: '1',
     email: 'admin@slabtrack.com',
     displayName: 'Admin User',
-    role: 'Admin',
+    role: 'admin',
     status: 'Active',
     lastLogin: new Date('2024-01-20'),
   },
@@ -19,7 +19,7 @@ const demoUsers = [
     id: '2',
     email: 'manager@slabtrack.com',
     displayName: 'Manager User',
-    role: 'Manager',
+    role: 'manager',
     status: 'Active',
     lastLogin: new Date('2024-01-19'),
   },
@@ -27,7 +27,7 @@ const demoUsers = [
     id: '3',
     email: 'member@slabtrack.com',
     displayName: 'Member User',
-    role: 'Member',
+    role: 'member',
     status: 'Active',
     lastLogin: new Date('2024-01-18'),
   },
@@ -57,9 +57,9 @@ export function Users() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'Admin': return 'bg-red-600';
-      case 'Manager': return 'bg-amber-600';
-      case 'Member': return 'bg-green-600';
+      case 'admin': return 'bg-red-600';
+      case 'manager': return 'bg-amber-600';
+      case 'member': return 'bg-green-600';
       default: return 'bg-gray-600';
     }
   };
@@ -192,7 +192,7 @@ export function Users() {
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">New Role</label>
               <div className="space-y-2">
-                {['Admin', 'Manager', 'Member'].map(role => (
+                {['admin', 'manager', 'member'].map(role => (
                   <label key={role} className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
                     <input
                       type="radio"
@@ -204,9 +204,9 @@ export function Users() {
                     <div>
                       <p className="font-medium text-white">{role}</p>
                       <p className="text-xs text-slate-400">
-                        {role === 'Admin' && 'Full access including user management'}
-                        {role === 'Manager' && 'Import, inventory, streams, and reports'}
-                        {role === 'Member' && 'Limited access to core functions'}
+                        {role === 'admin' && 'Full access including user management'}
+                        {role === 'manager' && 'Import, inventory, streams, and reports'}
+                        {role === 'member' && 'Limited access to core functions'}
                       </p>
                     </div>
                   </label>

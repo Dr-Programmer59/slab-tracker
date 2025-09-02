@@ -38,8 +38,7 @@ export const authService = {
         id: user._id,
         email: user.email,
         displayName: user.displayName,
-        role: user.role === 'admin' ? 'Admin' : 
-              user.role === 'manager' ? 'Manager' : 'Member',
+        role: user.role, // Keep as lowercase from API
         status: user.status === 'active' ? 'Active' : 'Disabled',
         lastLogin: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined,
         createdAt: new Date(user.createdAt),
@@ -81,8 +80,7 @@ export const authService = {
         id: apiUser._id,
         email: apiUser.email,
         displayName: apiUser.displayName,
-        role: apiUser.role === 'admin' ? 'Admin' : 
-              apiUser.role === 'manager' ? 'Manager' : 'Member',
+        role: apiUser.role, // Keep as lowercase from API
         status: apiUser.status === 'active' ? 'Active' : 'Disabled',
         lastLogin: apiUser.lastLoginAt ? new Date(apiUser.lastLoginAt) : undefined,
         createdAt: new Date(apiUser.createdAt),
