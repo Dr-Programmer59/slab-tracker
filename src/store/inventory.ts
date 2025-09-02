@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { cardService } from '../services/cardService';
 import { handleApiError } from '../utils/errorHandler';
 import toast from 'react-hot-toast';
-import type { Card, FilterState, CardStatus } from '../types';
+import type { Card, Batch, FilterState } from '../types';
 
 interface InventoryState {
   cards: Card[];
@@ -21,42 +21,35 @@ interface InventoryState {
   fetchCards: () => Promise<void>;
   updateCardStatus: (id: string, status: string, metadata?: any) => Promise<void>;
   updateCard: (id: string, updates: Partial<Card>) => Promise<void>;
-  addCard: (cardData: Partial<Card>) => void;
-  deleteCard: (id: string) => void;
-  generateLabel: (id: string) => void;
   selectCard: (card: Card | null) => void;
   setDetailDrawerOpen: (open: boolean) => void;
 }
 
+// Map API status to frontend status
 const mapApiStatus = (apiStatus: string): CardStatus => {
   const statusMap: Record<string, CardStatus> = {
     'pending': 'Staged',
     'received': 'Arrived',
     'graded': 'Available',
     'inventory': 'Available',
-    'Available': 'Available',
     'reserved': 'AllocatedToStream',
-    'AllocatedToStream': 'AllocatedToStream',
     'sold': 'Sold',
-    'Sold': 'Sold',
-    'ToShip': 'ToShip',
-    'Packed': 'Packed',
-    'shipped': 'Shipped',
-    'Shipped': 'Shipped'
+    'shipped': 'Shipped'
   };
   return statusMap[apiStatus] || 'Staged';
 };
 
+// Map frontend status to API status
 const mapFrontendStatus = (frontendStatus: CardStatus): string => {
   const statusMap: Record<CardStatus, string> = {
     'Staged': 'pending',
     'Arrived': 'received',
-    'Available': 'Available',
-    'AllocatedToStream': 'AllocatedToStream',
-    'Sold': 'Sold',
-    'ToShip': 'ToShip',
-    'Packed': 'Packed',
-    'Shipped': 'Shipped'
+    'Available': 'inventory',
+    'AllocatedToStream': 'reserved',
+    'Sold': 'sold',
+    'ToShip': 'sold',
+    'Packed': 'sold',
+    'Shipped': 'shipped'
   };
   return statusMap[frontendStatus] || 'pending';
 };
@@ -78,8 +71,9 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   setFilters: (newFilters) => {
     set((state) => ({
       filters: { ...state.filters, ...newFilters },
-      pagination: { ...state.pagination, page: 1 }
+      pagination: { ...state.pagination, page: 1 } // Reset to first page
     }));
+    // Fetch cards with new filters
     get().fetchCards();
   },
 
@@ -88,6 +82,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     try {
       const { filters, pagination } = get();
       
+      // Build API filters
       const apiFilters: any = {
         page: pagination.page,
         limit: pagination.limit
@@ -101,34 +96,37 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         apiFilters.sport = filters.sport.join(',');
       }
       if (filters.yearRange) {
-        apiFilters.year = filters.yearRange[0];
+        apiFilters.year = filters.yearRange[0]; // Backend expects single year for now
       }
       if (filters.priceRange) {
         apiFilters.minValue = filters.priceRange[0];
         apiFilters.maxValue = filters.priceRange[1];
       }
       
+      console.log('🔍 Fetching cards with filters:', apiFilters);
+      
       const result = await cardService.getCards(apiFilters);
       
-      if (result.success && result.data) {
-        // Access the exact API response structure: result.data.cards and result.data.pagination
+      if (result.success) {
         const apiCards = result.data.cards || [];
         const cards: Card[] = apiCards.map((apiCard: any) => ({
           id: apiCard._id,
           displayId: apiCard.displayId,
-          title: apiCard.title || 'Unknown Card',
-          player: apiCard.player,
+          title: apiCard.cardName || 'Unknown Card',
+          player: apiCard.playerName,
           sport: apiCard.sport,
           year: apiCard.year,
           grade: apiCard.gradingCompany && apiCard.grade ? `${apiCard.gradingCompany} ${apiCard.grade}` : apiCard.grade,
-          purchasePrice: apiCard.purchasePrice || 0,
-          currentValue: apiCard.currentValue,
+          purchasePrice: apiCard.marketValue || 0,
+          currentValue: apiCard.marketValue,
           status: mapApiStatus(apiCard.status),
           createdAt: new Date(apiCard.createdAt),
           updatedAt: new Date(apiCard.updatedAt),
           notes: apiCard.description || '',
           imageUrl: apiCard.imageUrl,
         }));
+        
+        console.log('✅ Cards fetched successfully:', cards.length);
         
         set({
           cards,
@@ -137,12 +135,14 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
           error: null
         });
       } else {
+        console.error('❌ Failed to fetch cards:', result.error);
         set({ 
           loading: false, 
-          error: result.error || 'Failed to fetch cards'
+          error: result.error 
         });
       }
     } catch (error) {
+      console.error('❌ Cards fetch error:', error);
       const errorMessage = handleApiError(error);
       set({ 
         loading: false, 
@@ -156,19 +156,18 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       const apiStatus = mapFrontendStatus(status as CardStatus);
       const result = await cardService.updateCardStatus(id, apiStatus, metadata);
       
-      if (result.success && result.data) {
-        // Access the exact API response structure: result.data.card
-        const updatedCard = result.data.card;
+      if (result.success) {
+        // Update local state
         set((state) => ({
           cards: state.cards.map(card => 
             card.id === id 
-              ? { ...card, status: mapApiStatus(updatedCard.status), updatedAt: new Date(updatedCard.updatedAt) }
+              ? { ...card, status: status as CardStatus, updatedAt: new Date() }
               : card
           )
         }));
-        toast.success(result.data.message || 'Card status updated successfully');
+        toast.success('Card status updated successfully');
       } else {
-        toast.error(result.error || 'Failed to update status');
+        toast.error(result.error);
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -180,102 +179,22 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     try {
       const result = await cardService.updateCard(id, updates);
       
-      if (result.success && result.data) {
-        // Access the exact API response structure: result.data.card
-        const updatedCard = result.data.card;
-        const mappedCard = {
-          id: updatedCard._id,
-          displayId: updatedCard.displayId,
-          title: updatedCard.title,
-          player: updatedCard.player,
-          sport: updatedCard.sport,
-          year: updatedCard.year,
-          grade: updatedCard.gradingCompany && updatedCard.grade ? `${updatedCard.gradingCompany} ${updatedCard.grade}` : updatedCard.grade,
-          purchasePrice: updatedCard.purchasePrice,
-          currentValue: updatedCard.currentValue,
-          status: mapApiStatus(updatedCard.status),
-          createdAt: new Date(updatedCard.createdAt),
-          updatedAt: new Date(updatedCard.updatedAt),
-          notes: updatedCard.description || '',
-          imageUrl: updatedCard.imageUrl,
-        };
-        
+      if (result.success) {
+        // Update local state
         set((state) => ({
           cards: state.cards.map(card => 
-            card.id === id ? mappedCard : card
+            card.id === id 
+              ? { ...card, ...updates, updatedAt: new Date() }
+              : card
           )
         }));
-        toast.success(result.data.message || 'Card updated successfully');
+        toast.success('Card updated successfully');
       } else {
-        toast.error(result.error || 'Failed to update card');
+        toast.error(result.error);
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
       toast.error(errorMessage);
-    }
-  },
-
-  addCard: (cardData) => {
-    const newCard: Card = {
-      id: Math.random().toString(36).substr(2, 9),
-      displayId: cardData.displayId || `ST-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 999999)).padStart(6, '0')}`,
-      title: cardData.title || '',
-      player: cardData.player || '',
-      sport: cardData.sport || 'Baseball',
-      year: cardData.year || new Date().getFullYear(),
-      grade: cardData.grade,
-      purchasePrice: cardData.purchasePrice || 0,
-      currentValue: cardData.currentValue,
-      status: (cardData.status as CardStatus) || 'Staged',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      notes: cardData.notes,
-      imageUrl: cardData.imageUrl,
-    };
-
-    set((state) => ({
-      cards: [newCard, ...state.cards]
-    }));
-  },
-
-  deleteCard: (id) => {
-    set((state) => ({
-      cards: state.cards.filter(card => card.id !== id)
-    }));
-  },
-
-  generateLabel: (id) => {
-    const { cards } = get();
-    const card = cards.find(c => c.id === id);
-    if (card) {
-      const labelHtml = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-              .label { width: 2in; height: 1in; border: 1px solid #000; padding: 8px; }
-              .display-id { font-size: 16px; font-weight: bold; }
-              .title { font-size: 12px; margin: 4px 0; }
-              .details { font-size: 10px; color: #666; }
-            </style>
-          </head>
-          <body>
-            <div class="label">
-              <div class="display-id">${card.displayId}</div>
-              <div class="title">${card.title}</div>
-              <div class="details">${card.player} • ${card.sport} • ${card.year}</div>
-            </div>
-          </body>
-        </html>
-      `;
-      
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(labelHtml);
-        printWindow.document.close();
-        printWindow.print();
-      }
     }
   },
 

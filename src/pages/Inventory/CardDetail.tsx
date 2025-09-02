@@ -4,7 +4,7 @@ import { Edit, Trash2, Printer, QrCode, Calendar, DollarSign } from 'lucide-reac
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
 import { useInventoryStore } from '../../store/inventory';
-import { usePermissions } from '../../hooks/usePermissions';
+import { useAuthStore } from '../../store/auth';
 import type { Card } from '../../types';
 import toast from 'react-hot-toast';
 
@@ -13,7 +13,7 @@ interface CardDetailProps {
 }
 
 export function CardDetail({ card }: CardDetailProps) {
-  const { hasPermission } = usePermissions();
+  const { user } = useAuthStore();
   const { updateCard, deleteCard, generateLabel } = useInventoryStore();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,8 +23,7 @@ export function CardDetail({ card }: CardDetailProps) {
     notes: card.notes || '',
   });
 
-  const canEdit = hasPermission('cards.update');
-  const canDelete = hasPermission('cards.delete');
+  const canEdit = user?.role === 'Admin' || user?.role === 'Manager';
 
   const handleSave = () => {
     updateCard(card.id, formData);
@@ -86,7 +85,7 @@ export function CardDetail({ card }: CardDetailProps) {
               >
                 <Printer className="w-4 h-4" />
               </Button>
-              {canDelete && (
+              {user?.role === 'Admin' && (
                 <Button
                   variant="danger"
                   size="sm"

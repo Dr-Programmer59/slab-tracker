@@ -28,7 +28,7 @@ interface ApiResponse<T> {
 }
 
 export const shippingService = {
-  // GET ALL SHIPMENTS - Updated to match exact API response format
+  // GET ALL SHIPMENTS
   async getShipments(filters: ShipmentFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
@@ -37,17 +37,11 @@ export const shippingService = {
       if (filters.limit) params.append('limit', filters.limit.toString());
       
       const response = await api.get(`/shipments?${params}`);
-      
-      // Check API response format: { ok: true, data: { shipments, pagination } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to fetch shipments');
-      }
-      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to fetch shipments'
+        error: error.response?.data?.error?.message || 'Failed to fetch shipments'
       };
     }
   },
@@ -62,17 +56,11 @@ export const shippingService = {
         cardIds: shipmentData.cardIds,
         shippingMethod: shipmentData.shippingMethod || 'Standard'
       });
-      
-      // Check API response format: { ok: true, data: { shipment, message } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to create shipment');
-      }
-      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to create shipment'
+        error: error.response?.data?.error?.message || 'Failed to create shipment'
       };
     }
   },
@@ -86,17 +74,11 @@ export const shippingService = {
         shippedDate: trackingData.shippedDate,
         estimatedDelivery: trackingData.estimatedDelivery
       });
-      
-      // Check API response format: { ok: true, data: { shipment, message } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to mark as shipped');
-      }
-      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to mark as shipped'
+        error: error.response?.data?.error?.message || 'Failed to mark as shipped'
       };
     }
   },
@@ -105,17 +87,11 @@ export const shippingService = {
   async getShipmentDetails(shipmentId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.get(`/shipments/${shipmentId}`);
-      
-      // Check API response format: { ok: true, data: { shipment } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Shipment not found');
-      }
-      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Shipment not found'
+        error: error.response?.data?.error?.message || 'Shipment not found'
       };
     }
   },

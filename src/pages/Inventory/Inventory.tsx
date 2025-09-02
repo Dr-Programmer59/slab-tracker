@@ -29,7 +29,7 @@ export function Inventory() {
     setDetailDrawerOpen 
   } = useInventoryStore();
   
-  const { hasPermission } = usePermissions();
+  const { canEditCards } = usePermissions();
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -65,7 +65,7 @@ export function Inventory() {
             <Filter className="w-4 h-4" />
             Filters
           </Button>
-          {hasPermission('cards.update') && (
+          {canEditCards() && (
             <Button onClick={() => setShowAddModal(true)}>
               <Plus className="w-4 h-4" />
               Add Card

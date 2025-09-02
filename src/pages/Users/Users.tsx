@@ -4,7 +4,6 @@ import { Users as UsersIcon, UserPlus, Shield, Clock } from 'lucide-react';
 import { Button } from '../../components/Common/Button';
 import { Modal } from '../../components/Common/Modal';
 import { useAuthStore } from '../../store/auth';
-import toast from 'react-hot-toast';
 
 const demoUsers = [
   {
