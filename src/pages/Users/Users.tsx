@@ -204,9 +204,11 @@ export function Users() {
                     <div>
                       <p className="font-medium text-white">{role}</p>
                       <p className="text-xs text-slate-400">
-                        {role === 'admin' && 'Full access including user management'}
-                        {role === 'manager' && 'Import, inventory, streams, and reports'}
-                        {role === 'member' && 'Limited access to core functions'}
+                        {role === 'admin' 
+                          ? 'Full access including user management'
+                          : role === 'manager'
+                          ? 'Import, inventory, streams, and reports'
+                          : 'Limited access to core functions'}
                       </p>
                     </div>
                   </label>
