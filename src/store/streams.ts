@@ -40,6 +40,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
       const result = await streamService.getStreams();
       
       if (result.success && result.data) {
+        // Access the exact API response structure: result.data.streams
         const apiStreams = result.data.streams || [];
         const streams: Stream[] = apiStreams.map((apiStream: any) => ({
           id: apiStream._id,
@@ -72,6 +73,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
       const result = await streamService.createStream(streamData);
       
       if (result.success && result.data) {
+        // Access the exact API response structure: result.data.stream
         const apiStream = result.data.stream;
         const newStream: Stream = {
           id: apiStream._id,
@@ -90,7 +92,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
           streams: [...state.streams, newStream]
         }));
         
-        toast.success('Stream created successfully');
+        toast.success(result.data.message || 'Stream created successfully');
       } else {
         toast.error(result.error || 'Failed to create stream');
       }
@@ -123,6 +125,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
       const result = await streamService.finalizeStream(id, pnlData);
       
       if (result.success && result.data) {
+        // Access the exact API response structure: result.data.stream
         const apiStream = result.data.stream;
         set((state) => ({
           streams: state.streams.map(stream => 
@@ -139,7 +142,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
           )
         }));
         
-        toast.success('Stream finalized successfully');
+        toast.success(result.data.message || 'Stream finalized successfully');
       } else {
         toast.error(result.error || 'Failed to finalize stream');
       }

@@ -20,7 +20,7 @@ interface ApiResponse<T> {
 }
 
 export const batchService = {
-  // GET ALL BATCHES - Updated to match API response format
+  // GET ALL BATCHES - Updated to match exact API response format
   async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
@@ -32,6 +32,7 @@ export const batchService = {
       
       const response = await api.get(`/batches?${params}`);
       
+      // Check API response format: { ok: true, data: { batches, pagination } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to fetch batches');
       }
@@ -54,6 +55,7 @@ export const batchService = {
         expectedCount: batchData.expectedCount || 0
       });
       
+      // Check API response format: { ok: true, data: { batch, message } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to create batch');
       }
@@ -80,6 +82,7 @@ export const batchService = {
         timeout: 60000
       });
       
+      // Check API response format: { ok: true, data: { message, importedCount, errors, batch } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to import file');
       }
@@ -98,6 +101,7 @@ export const batchService = {
     try {
       const response = await api.post(`/batches/${batchId}/intake`);
       
+      // Check API response format: { ok: true, data: { message, batch } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to start intake');
       }

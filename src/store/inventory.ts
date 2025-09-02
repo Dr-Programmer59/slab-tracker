@@ -111,6 +111,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       const result = await cardService.getCards(apiFilters);
       
       if (result.success && result.data) {
+        // Access the exact API response structure: result.data.cards and result.data.pagination
         const apiCards = result.data.cards || [];
         const cards: Card[] = apiCards.map((apiCard: any) => ({
           id: apiCard._id,
@@ -155,15 +156,17 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       const apiStatus = mapFrontendStatus(status as CardStatus);
       const result = await cardService.updateCardStatus(id, apiStatus, metadata);
       
-      if (result.success) {
+      if (result.success && result.data) {
+        // Access the exact API response structure: result.data.card
+        const updatedCard = result.data.card;
         set((state) => ({
           cards: state.cards.map(card => 
             card.id === id 
-              ? { ...card, status: status as CardStatus, updatedAt: new Date() }
+              ? { ...card, status: mapApiStatus(updatedCard.status), updatedAt: new Date(updatedCard.updatedAt) }
               : card
           )
         }));
-        toast.success('Card status updated successfully');
+        toast.success(result.data.message || 'Card status updated successfully');
       } else {
         toast.error(result.error || 'Failed to update status');
       }
@@ -177,15 +180,32 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     try {
       const result = await cardService.updateCard(id, updates);
       
-      if (result.success) {
+      if (result.success && result.data) {
+        // Access the exact API response structure: result.data.card
+        const updatedCard = result.data.card;
+        const mappedCard = {
+          id: updatedCard._id,
+          displayId: updatedCard.displayId,
+          title: updatedCard.title,
+          player: updatedCard.player,
+          sport: updatedCard.sport,
+          year: updatedCard.year,
+          grade: updatedCard.gradingCompany && updatedCard.grade ? `${updatedCard.gradingCompany} ${updatedCard.grade}` : updatedCard.grade,
+          purchasePrice: updatedCard.purchasePrice,
+          currentValue: updatedCard.currentValue,
+          status: mapApiStatus(updatedCard.status),
+          createdAt: new Date(updatedCard.createdAt),
+          updatedAt: new Date(updatedCard.updatedAt),
+          notes: updatedCard.description || '',
+          imageUrl: updatedCard.imageUrl,
+        };
+        
         set((state) => ({
           cards: state.cards.map(card => 
-            card.id === id 
-              ? { ...card, ...updates, updatedAt: new Date() }
-              : card
+            card.id === id ? mappedCard : card
           )
         }));
-        toast.success('Card updated successfully');
+        toast.success(result.data.message || 'Card updated successfully');
       } else {
         toast.error(result.error || 'Failed to update card');
       }

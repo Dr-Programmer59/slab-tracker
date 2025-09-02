@@ -22,7 +22,7 @@ export const authService = {
         password: password
       });
       
-      // Match exact API response format: response.data.data
+      // Check API response format: { ok: true, data: { token, user } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Login failed');
       }
@@ -33,10 +33,22 @@ export const authService = {
         throw new Error('No token received from server');
       }
       
-      localStorage.setItem('slabtrack_token', token);
-      localStorage.setItem('slabtrack_user', JSON.stringify(user));
+      // Map API user to frontend User type
+      const mappedUser: User = {
+        id: user._id,
+        email: user.email,
+        displayName: user.displayName,
+        role: user.role === 'admin' ? 'Admin' : 
+              user.role === 'manager' ? 'Manager' : 'Member',
+        status: user.status === 'active' ? 'Active' : 'Disabled',
+        lastLogin: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined,
+        createdAt: new Date(user.createdAt),
+      };
       
-      return { success: true, user, token };
+      localStorage.setItem('slabtrack_token', token);
+      localStorage.setItem('slabtrack_user', JSON.stringify(mappedUser));
+      
+      return { success: true, user: mappedUser, token };
     } catch (error: any) {
       localStorage.removeItem('slabtrack_token');
       localStorage.removeItem('slabtrack_user');
@@ -57,11 +69,24 @@ export const authService = {
       
       const response = await api.get('/auth/me');
       
+      // Check API response format: { ok: true, data: { user } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Session invalid');
       }
 
-      const user = response.data.data.user;
+      const apiUser = response.data.data.user;
+      
+      // Map API user to frontend User type
+      const user: User = {
+        id: apiUser._id,
+        email: apiUser.email,
+        displayName: apiUser.displayName,
+        role: apiUser.role === 'admin' ? 'Admin' : 
+              apiUser.role === 'manager' ? 'Manager' : 'Member',
+        status: apiUser.status === 'active' ? 'Active' : 'Disabled',
+        lastLogin: apiUser.lastLoginAt ? new Date(apiUser.lastLoginAt) : undefined,
+        createdAt: new Date(apiUser.createdAt),
+      };
       
       localStorage.setItem('slabtrack_user', JSON.stringify(user));
       

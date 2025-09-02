@@ -28,7 +28,7 @@ interface ApiResponse<T> {
 }
 
 export const cardService = {
-  // GET CARDS WITH FILTERING - Updated to match API response format
+  // GET CARDS WITH FILTERING - Updated to match exact API response format
   async getCards(filters: CardFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
@@ -50,6 +50,7 @@ export const cardService = {
       
       const response = await api.get(`/cards?${params}`);
       
+      // Check API response format: { ok: true, data: { cards, pagination } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to fetch cards');
       }
@@ -68,6 +69,7 @@ export const cardService = {
     try {
       const response = await api.get(`/cards/${cardId}`);
       
+      // Check API response format: { ok: true, data: { card } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Card not found');
       }
@@ -86,6 +88,7 @@ export const cardService = {
     try {
       const response = await api.get(`/cards/display/${displayId}`);
       
+      // Check API response format: { ok: true, data: { card } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Card not found');
       }
@@ -107,6 +110,7 @@ export const cardService = {
         metadata: metadata
       });
       
+      // Check API response format: { ok: true, data: { card, message } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to update status');
       }
@@ -125,6 +129,7 @@ export const cardService = {
     try {
       const response = await api.put(`/cards/${cardId}`, updates);
       
+      // Check API response format: { ok: true, data: { card, message } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to update card');
       }

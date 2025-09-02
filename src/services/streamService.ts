@@ -27,7 +27,7 @@ interface ApiResponse<T> {
 }
 
 export const streamService = {
-  // GET ALL STREAMS - Updated to match API response format
+  // GET ALL STREAMS - Updated to match exact API response format
   async getStreams(filters: StreamFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
@@ -37,6 +37,7 @@ export const streamService = {
       
       const response = await api.get(`/streams?${params}`);
       
+      // Check API response format: { ok: true, data: { streams, pagination } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to fetch streams');
       }
@@ -59,6 +60,7 @@ export const streamService = {
         targetValue: streamData.targetValue || 0
       });
       
+      // Check API response format: { ok: true, data: { stream, message } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to create stream');
       }
@@ -79,6 +81,7 @@ export const streamService = {
         cardDisplayId: cardDisplayId
       });
       
+      // Check API response format: { ok: true, data: { stream, card, message } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to add card to stream');
       }
@@ -97,6 +100,7 @@ export const streamService = {
     try {
       const response = await api.delete(`/streams/${streamId}/cards/${cardId}`);
       
+      // Check API response format: { ok: true, data: { stream, card, message } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to remove card from stream');
       }
@@ -121,6 +125,7 @@ export const streamService = {
         notes: pnlData.notes || ''
       });
       
+      // Check API response format: { ok: true, data: { stream, shipment, message } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to finalize stream');
       }
@@ -139,6 +144,7 @@ export const streamService = {
     try {
       const response = await api.get(`/streams/${streamId}`);
       
+      // Check API response format: { ok: true, data: { stream } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Stream not found');
       }
