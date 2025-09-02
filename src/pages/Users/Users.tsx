@@ -207,9 +207,9 @@ export function Users() {
                         {role === 'admin' && 'Full access including user management'}
                         {role === 'manager' && 'Import, inventory, streams, and reports'}
                         {role === 'member' && 'Limited access to core functions'}
-                      </p>
-                    </div>
-                  </label>
+                  {role === 'admin' && 'Full access including user management'}
+                  {role === 'manager' && 'Import, inventory, streams, and reports'}
+                  {role === 'member' && 'Limited access to core functions'}
                 ))}
               </div>
             </div>

@@ -5,6 +5,7 @@ import { Button } from '../../components/Common/Button';
 import { KPICard } from '../Dashboard/KPICard';
 import { useInventoryStore } from '../../store/inventory';
 import { useStreamsStore } from '../../store/streams';
+import toast from 'react-hot-toast';
 
 export function Reports() {
   const { cards } = useInventoryStore();

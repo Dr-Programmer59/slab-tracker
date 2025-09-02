@@ -17,6 +17,7 @@ import { StatusChip } from '../../components/Common/StatusChip';
 import { KPICard } from './KPICard';
 import { RecentActivity } from './RecentActivity';
 import { InventoryChart } from './InventoryChart';
+import toast from 'react-hot-toast';
 
 export function Dashboard() {
   const { user } = useAuthStore();

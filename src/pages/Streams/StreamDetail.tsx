@@ -23,7 +23,7 @@ export function StreamDetail() {
     return <div className="text-white">Stream not found</div>;
   }
 
-  const canEdit = user?.role === 'Admin' || user?.role === 'Manager';
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
 
   const handleLock = () => {
     if (window.confirm('Lock this stream? This will prevent further edits.')) {
