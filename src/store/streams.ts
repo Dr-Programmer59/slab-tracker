@@ -41,7 +41,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
       
       if (result.success && result.data) {
         // Access the exact API response structure: result.data.streams
-        const apiStreams = result.data.streams || [];
+        const apiStreams = result.data.items || [];
         const streams: Stream[] = apiStreams.map((apiStream: any) => ({
           id: apiStream._id,
           title: apiStream.title,
