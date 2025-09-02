@@ -35,7 +35,7 @@ const demoAuditEntries = [
     entityId: 'member@slabtrack.com',
     timestamp: new Date('2024-01-18T09:15:00'),
     oldValues: { role: 'Member' },
-    newValues: { role: 'Manager' },
+    newValues: { role: 'manager' },
   },
 ];
 
