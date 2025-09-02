@@ -43,7 +43,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
         // Access the exact API response structure: result.data.streams
         const apiStreams = result.data.items || [];
         const streams: Stream[] = apiStreams.map((apiStream: any) => ({
-          id: apiStream._id,
+          id: apiStream.id,
           title: apiStream.title,
           streamer: apiStream.streamerName || 'SlabTrack User',
           date: new Date(apiStream.date || apiStream.createdAt),
