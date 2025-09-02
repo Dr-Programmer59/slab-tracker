@@ -112,7 +112,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       
       if (result.success && result.data) {
         // Access the exact API response structure: result.data.cards and result.data.pagination
-        const apiCards = result.data.cards || [];
+        const apiCards = result.data.items || [];
         const cards: Card[] = apiCards.map((apiCard: any) => ({
           id: apiCard._id,
           displayId: apiCard.displayId,
