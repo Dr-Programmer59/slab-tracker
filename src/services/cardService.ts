@@ -28,12 +28,11 @@ interface ApiResponse<T> {
 }
 
 export const cardService = {
-  // GET CARDS WITH FILTERING - EXACT IMPLEMENTATION
+  // GET CARDS WITH FILTERING - Updated to match API response format
   async getCards(filters: CardFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       
-      // CRITICAL: Use exact parameter names
       if (filters.search) params.append('search', filters.search);
       if (filters.status) params.append('status', filters.status);
       if (filters.sport) params.append('sport', filters.sport);
@@ -50,11 +49,16 @@ export const cardService = {
       if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
       
       const response = await api.get(`/cards?${params}`);
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to fetch cards');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to fetch cards'
+        error: error.response?.data?.error?.message || error.message || 'Failed to fetch cards'
       };
     }
   },
@@ -63,11 +67,16 @@ export const cardService = {
   async getCard(cardId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.get(`/cards/${cardId}`);
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Card not found');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Card not found'
+        error: error.response?.data?.error?.message || error.message || 'Card not found'
       };
     }
   },
@@ -76,11 +85,16 @@ export const cardService = {
   async getCardByDisplayId(displayId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.get(`/cards/display/${displayId}`);
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Card not found');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Card not found'
+        error: error.response?.data?.error?.message || error.message || 'Card not found'
       };
     }
   },
@@ -92,11 +106,16 @@ export const cardService = {
         status: status,
         metadata: metadata
       });
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to update status');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to update status'
+        error: error.response?.data?.error?.message || error.message || 'Failed to update status'
       };
     }
   },
@@ -105,11 +124,16 @@ export const cardService = {
   async updateCard(cardId: string, updates: CardUpdate): Promise<ApiResponse<any>> {
     try {
       const response = await api.put(`/cards/${cardId}`, updates);
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to update card');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to update card'
+        error: error.response?.data?.error?.message || error.message || 'Failed to update card'
       };
     }
   }

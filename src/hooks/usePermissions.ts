@@ -1,9 +1,13 @@
-import { authService } from '../services/authService';
-import type { User } from '../types';
+import { useAuthStore } from '../store/auth';
+import { hasPermission, canAccessOwnResource, type UserRole } from '../utils/rbac';
 
 interface PermissionsHook {
-  user: User | null;
-  hasRole: (role: string) => boolean;
+  user: any;
+  userRole: UserRole | null;
+  hasPermission: (action: string) => boolean;
+  canAccessOwnResource: (action: string, resourceOwnerId: string) => boolean;
+  
+  // Legacy methods for backward compatibility
   canManageUsers: () => boolean;
   canManageBatches: () => boolean;
   canEditCards: () => boolean;
@@ -13,29 +17,31 @@ interface PermissionsHook {
 }
 
 export const usePermissions = (): PermissionsHook => {
-  const user = authService.getStoredUser();
+  const { user } = useAuthStore();
+  const userRole = user?.role as UserRole | null;
 
-  const hasRole = (role: string): boolean => {
-    if (!user) return false;
-    if (user.role === 'Admin') return true; // Admin has all permissions
-    return user.role === role;
+  const checkPermission = (action: string): boolean => {
+    if (!userRole) return false;
+    return hasPermission(userRole, action);
   };
 
-  const canManageUsers = (): boolean => hasRole('Admin');
-  const canManageBatches = (): boolean => hasRole('Admin') || hasRole('Manager');
-  const canEditCards = (): boolean => hasRole('Admin') || hasRole('Manager');
-  const canFinalizeStreams = (): boolean => hasRole('Admin') || hasRole('Manager');
-  const canViewReports = (): boolean => hasRole('Admin') || hasRole('Manager');
-  const canExportData = (): boolean => hasRole('Admin') || hasRole('Manager');
+  const checkOwnResource = (action: string, resourceOwnerId: string): boolean => {
+    if (!userRole || !user?.id) return false;
+    return canAccessOwnResource(userRole, action, resourceOwnerId, user.id);
+  };
 
   return {
     user,
-    hasRole,
-    canManageUsers,
-    canManageBatches,
-    canEditCards,
-    canFinalizeStreams,
-    canViewReports,
-    canExportData
+    userRole,
+    hasPermission: checkPermission,
+    canAccessOwnResource: checkOwnResource,
+    
+    // Legacy methods for backward compatibility
+    canManageUsers: () => checkPermission('users.list'),
+    canManageBatches: () => checkPermission('batches.create'),
+    canEditCards: () => checkPermission('cards.update'),
+    canFinalizeStreams: () => checkPermission('streams.finalize'),
+    canViewReports: () => checkPermission('reports.view'),
+    canExportData: () => checkPermission('reports.export'),
   };
 };

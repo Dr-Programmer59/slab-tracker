@@ -10,7 +10,7 @@ interface StreamsState {
   error: string | null;
   selectedStream: Stream | null;
   fetchStreams: () => Promise<void>;
-  createStream: (streamData: { name: string; description?: string; targetValue?: number }) => Promise<void>;
+  createStream: (streamData: { title: string; description?: string; targetValue?: number }) => Promise<void>;
   lockStream: (id: string) => void;
   finalizeStream: (id: string, grossSales: number, fees: number) => Promise<void>;
   selectStream: (stream: Stream | null) => void;
@@ -18,8 +18,11 @@ interface StreamsState {
 
 const mapApiStatus = (apiStatus: string): StreamStatus => {
   const statusMap: Record<string, StreamStatus> = {
+    'Draft': 'Draft',
     'draft': 'Draft',
+    'Locked': 'Locked',
     'locked': 'Locked',
+    'Finalized': 'Finalized',
     'finalized': 'Finalized'
   };
   return statusMap[apiStatus] || 'Draft';
@@ -40,13 +43,13 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
         const apiStreams = result.data.streams || [];
         const streams: Stream[] = apiStreams.map((apiStream: any) => ({
           id: apiStream._id,
-          title: apiStream.name,
-          streamer: apiStream.createdBy?.displayName || 'SlabTrack User',
-          date: new Date(apiStream.createdAt),
+          title: apiStream.title,
+          streamer: apiStream.streamerName || 'SlabTrack User',
+          date: new Date(apiStream.date || apiStream.createdAt),
           status: mapApiStatus(apiStream.status),
-          totalItems: apiStream.cards?.length || 0,
+          totalItems: apiStream.cardCount || 0,
           totalCost: apiStream.totalValue || 0,
-          grossSales: apiStream.soldPrice,
+          grossSales: apiStream.grossSales,
           fees: apiStream.fees,
           profit: apiStream.profit,
           cards: apiStream.cards || [],
@@ -72,9 +75,9 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
         const apiStream = result.data.stream;
         const newStream: Stream = {
           id: apiStream._id,
-          title: apiStream.name,
+          title: apiStream.title,
           streamer: 'SlabTrack User',
-          date: new Date(apiStream.createdAt),
+          date: new Date(apiStream.date || apiStream.createdAt),
           status: mapApiStatus(apiStream.status),
           totalItems: apiStream.cardCount || 0,
           totalCost: apiStream.totalValue || 0,
@@ -111,7 +114,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
   finalizeStream: async (id, grossSales, fees) => {
     try {
       const pnlData = {
-        soldPrice: grossSales,
+        grossSales: grossSales,
         fees: fees,
         shippingCost: 0,
         notes: ''
@@ -127,7 +130,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
               ? {
                   ...stream,
                   status: mapApiStatus(apiStream.status),
-                  grossSales: apiStream.soldPrice,
+                  grossSales: apiStream.grossSales,
                   fees: apiStream.fees,
                   profit: apiStream.profit,
                   updatedAt: new Date(apiStream.updatedAt)

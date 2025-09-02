@@ -22,6 +22,11 @@ export const authService = {
         password: password
       });
       
+      // Match exact API response format: response.data.data
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Login failed');
+      }
+
       const { token, user } = response.data.data;
       
       if (!token) {
@@ -38,7 +43,7 @@ export const authService = {
       
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Login failed'
+        error: error.response?.data?.error?.message || error.message || 'Login failed'
       };
     }
   },
@@ -51,6 +56,11 @@ export const authService = {
       }
       
       const response = await api.get('/auth/me');
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Session invalid');
+      }
+
       const user = response.data.data.user;
       
       localStorage.setItem('slabtrack_user', JSON.stringify(user));
@@ -62,17 +72,16 @@ export const authService = {
       
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Session invalid'
+        error: error.response?.data?.error?.message || error.message || 'Session invalid'
       };
     }
   },
 
   logout(): void {
-    console.log("Logging out...");  
+    console.log("🔓 Logging out...");  
     localStorage.removeItem('slabtrack_token');
     localStorage.removeItem('slabtrack_user');
     localStorage.removeItem('slabtrack_remember');
-    // Let the React app handle the redirect through auth state changes
   },
 
   isAuthenticated(): boolean {

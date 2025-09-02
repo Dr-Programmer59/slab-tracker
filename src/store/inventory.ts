@@ -34,9 +34,15 @@ const mapApiStatus = (apiStatus: string): CardStatus => {
     'received': 'Arrived',
     'graded': 'Available',
     'inventory': 'Available',
+    'Available': 'Available',
     'reserved': 'AllocatedToStream',
+    'AllocatedToStream': 'AllocatedToStream',
     'sold': 'Sold',
-    'shipped': 'Shipped'
+    'Sold': 'Sold',
+    'ToShip': 'ToShip',
+    'Packed': 'Packed',
+    'shipped': 'Shipped',
+    'Shipped': 'Shipped'
   };
   return statusMap[apiStatus] || 'Staged';
 };
@@ -45,12 +51,12 @@ const mapFrontendStatus = (frontendStatus: CardStatus): string => {
   const statusMap: Record<CardStatus, string> = {
     'Staged': 'pending',
     'Arrived': 'received',
-    'Available': 'inventory',
-    'AllocatedToStream': 'reserved',
-    'Sold': 'sold',
-    'ToShip': 'sold',
-    'Packed': 'sold',
-    'Shipped': 'shipped'
+    'Available': 'Available',
+    'AllocatedToStream': 'AllocatedToStream',
+    'Sold': 'Sold',
+    'ToShip': 'ToShip',
+    'Packed': 'Packed',
+    'Shipped': 'Shipped'
   };
   return statusMap[frontendStatus] || 'pending';
 };
@@ -109,13 +115,13 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         const cards: Card[] = apiCards.map((apiCard: any) => ({
           id: apiCard._id,
           displayId: apiCard.displayId,
-          title: apiCard.cardName || 'Unknown Card',
-          player: apiCard.playerName,
+          title: apiCard.title || 'Unknown Card',
+          player: apiCard.player,
           sport: apiCard.sport,
           year: apiCard.year,
           grade: apiCard.gradingCompany && apiCard.grade ? `${apiCard.gradingCompany} ${apiCard.grade}` : apiCard.grade,
-          purchasePrice: apiCard.marketValue || 0,
-          currentValue: apiCard.marketValue,
+          purchasePrice: apiCard.purchasePrice || 0,
+          currentValue: apiCard.currentValue,
           status: mapApiStatus(apiCard.status),
           createdAt: new Date(apiCard.createdAt),
           updatedAt: new Date(apiCard.updatedAt),

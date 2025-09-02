@@ -7,13 +7,13 @@ interface StreamFilters {
 }
 
 interface StreamData {
-  name: string;
+  title: string;
   description?: string;
   targetValue?: number;
 }
 
 interface PnLData {
-  soldPrice: number;
+  grossSales: number;
   fees?: number;
   shippingCost?: number;
   buyerInfo?: any;
@@ -27,7 +27,7 @@ interface ApiResponse<T> {
 }
 
 export const streamService = {
-  // GET ALL STREAMS
+  // GET ALL STREAMS - Updated to match API response format
   async getStreams(filters: StreamFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
@@ -36,11 +36,16 @@ export const streamService = {
       if (filters.limit) params.append('limit', filters.limit.toString());
       
       const response = await api.get(`/streams?${params}`);
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to fetch streams');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to fetch streams'
+        error: error.response?.data?.error?.message || error.message || 'Failed to fetch streams'
       };
     }
   },
@@ -49,15 +54,20 @@ export const streamService = {
   async createStream(streamData: StreamData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post('/streams', {
-        name: streamData.name,
+        title: streamData.title,
         description: streamData.description || '',
         targetValue: streamData.targetValue || 0
       });
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to create stream');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to create stream'
+        error: error.response?.data?.error?.message || error.message || 'Failed to create stream'
       };
     }
   },
@@ -66,13 +76,18 @@ export const streamService = {
   async addCardToStream(streamId: string, cardDisplayId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.post(`/streams/${streamId}/cards`, {
-        cardDisplayId: cardDisplayId // EXACT field name required
+        cardDisplayId: cardDisplayId
       });
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to add card to stream');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to add card to stream'
+        error: error.response?.data?.error?.message || error.message || 'Failed to add card to stream'
       };
     }
   },
@@ -81,11 +96,16 @@ export const streamService = {
   async removeCardFromStream(streamId: string, cardId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.delete(`/streams/${streamId}/cards/${cardId}`);
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to remove card from stream');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to remove card from stream'
+        error: error.response?.data?.error?.message || error.message || 'Failed to remove card from stream'
       };
     }
   },
@@ -94,17 +114,22 @@ export const streamService = {
   async finalizeStream(streamId: string, pnlData: PnLData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post(`/streams/${streamId}/finalize`, {
-        soldPrice: pnlData.soldPrice,
+        grossSales: pnlData.grossSales,
         fees: pnlData.fees || 0,
         shippingCost: pnlData.shippingCost || 0,
         buyerInfo: pnlData.buyerInfo,
         notes: pnlData.notes || ''
       });
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to finalize stream');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to finalize stream'
+        error: error.response?.data?.error?.message || error.message || 'Failed to finalize stream'
       };
     }
   },
@@ -113,11 +138,16 @@ export const streamService = {
   async getStreamDetails(streamId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.get(`/streams/${streamId}`);
+      
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Stream not found');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Stream not found'
+        error: error.response?.data?.error?.message || error.message || 'Stream not found'
       };
     }
   }

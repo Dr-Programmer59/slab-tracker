@@ -12,26 +12,26 @@ import {
   FileText,
   Home
 } from 'lucide-react';
-import { useAuthStore } from '../../store/auth';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: Home, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/import', label: 'Import', icon: Upload, roles: ['Admin', 'Manager'] },
-  { path: '/inventory', label: 'Inventory', icon: Package, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/streams', label: 'Streams', icon: Radio, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/builder', label: 'Builder', icon: Smartphone, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/shipping', label: 'Shipping', icon: Truck, roles: ['Admin', 'Manager', 'Member'] },
-  { path: '/reports', label: 'Reports', icon: BarChart3, roles: ['Admin', 'Manager'] },
-  { path: '/users', label: 'Users', icon: Users, roles: ['Admin'] },
-  { path: '/audit', label: 'Audit', icon: FileText, roles: ['Admin'] },
+  { path: '/dashboard', label: 'Dashboard', icon: Home, permission: 'cards.list' },
+  { path: '/import', label: 'Import', icon: Upload, permission: 'batches.create' },
+  { path: '/inventory', label: 'Inventory', icon: Package, permission: 'cards.list' },
+  { path: '/streams', label: 'Streams', icon: Radio, permission: 'streams.list' },
+  { path: '/builder', label: 'Builder', icon: Smartphone, permission: 'streams.addItems' },
+  { path: '/shipping', label: 'Shipping', icon: Truck, permission: 'shipping.list' },
+  { path: '/reports', label: 'Reports', icon: BarChart3, permission: 'reports.view' },
+  { path: '/users', label: 'Users', icon: Users, permission: 'users.list' },
+  { path: '/audit', label: 'Audit', icon: FileText, permission: 'audit.view' },
 ];
 
 export function SideNav() {
-  const { user } = useAuthStore();
+  const { hasPermission } = usePermissions();
   const location = useLocation();
 
   const filteredNavItems = navItems.filter(item => 
-    user && item.roles.includes(user.role)
+    hasPermission(item.permission)
   );
 
   return (
