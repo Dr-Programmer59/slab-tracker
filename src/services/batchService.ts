@@ -20,28 +20,33 @@ interface ApiResponse<T> {
 }
 
 export const batchService = {
-  // GET ALL BATCHES - EXACT IMPLEMENTATION
+  // GET ALL BATCHES - Updated to match exact API response format
   async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       
-      // Add filters exactly as specified
       if (filters.status) params.append('status', filters.status);
       if (filters.search) params.append('search', filters.search);
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.limit) params.append('limit', filters.limit.toString());
       
       const response = await api.get(`/batches?${params}`);
+      
+      // Check API response format: { ok: true, data: { batches, pagination } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to fetch batches');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to fetch batches'
+        error: error.response?.data?.error?.message || error.message || 'Failed to fetch batches'
       };
     }
   },
 
-  // CREATE BATCH - EXACT IMPLEMENTATION
+  // CREATE BATCH
   async createBatch(batchData: BatchData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post('/batches', {
@@ -49,11 +54,17 @@ export const batchService = {
         description: batchData.description || '',
         expectedCount: batchData.expectedCount || 0
       });
+      
+      // Check API response format: { ok: true, data: { batch, message } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to create batch');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to create batch'
+        error: error.response?.data?.error?.message || error.message || 'Failed to create batch'
       };
     }
   },
@@ -62,20 +73,25 @@ export const batchService = {
   async importSpreadsheet(batchId: string, file: File): Promise<ApiResponse<any>> {
     try {
       const formData = new FormData();
-      formData.append('file', file); // EXACT field name required
+      formData.append('file', file);
       
       const response = await api.post(`/batches/${batchId}/import`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data' // CRITICAL: Override content type
+          'Content-Type': 'multipart/form-data'
         },
-        timeout: 60000 // Longer timeout for file upload
+        timeout: 60000
       });
+      
+      // Check API response format: { ok: true, data: { message, importedCount, errors, batch } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to import file');
+      }
       
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to import file'
+        error: error.response?.data?.error?.message || error.message || 'Failed to import file'
       };
     }
   },
@@ -84,11 +100,17 @@ export const batchService = {
   async startIntake(batchId: string): Promise<ApiResponse<any>> {
     try {
       const response = await api.post(`/batches/${batchId}/intake`);
+      
+      // Check API response format: { ok: true, data: { message, batch } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to start intake');
+      }
+      
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Failed to start intake'
+        error: error.response?.data?.error?.message || error.message || 'Failed to start intake'
       };
     }
   }

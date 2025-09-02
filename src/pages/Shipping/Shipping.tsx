@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Truck, Package, Scan, Plus, FileText } from 'lucide-react';
+import { Truck, Package, Scan, FileText } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventory';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
-import { Modal } from '../../components/Common/Modal';
 import { AddTrackingModal } from './AddTrackingModal';
+import toast from 'react-hot-toast';
 
 export function Shipping() {
   const { cards, updateCard } = useInventoryStore();
@@ -195,44 +195,6 @@ export function Shipping() {
           </div>
         </motion.div>
       </div>
-
-      {/* Session Controls */}
-      {sessionActive && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-slate-800 border border-slate-700 rounded-xl p-6"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-semibold text-white">Current Session</h4>
-              <p className="text-slate-400 text-sm">
-                {sessionItems.length} items • ${totalCost.toFixed(2)} total cost
-              </p>
-            </div>
-            <Button variant="danger" onClick={stopSession}>
-              <StopCircle className="w-4 h-4" />
-              Stop Session
-            </Button>
-          </div>
-
-          {/* Hidden input always focused for scanner */}
-          <input
-            ref={scanInputRef}
-            type="text"
-            value={scanInput}
-            onChange={(e) => setScanInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleScan(scanInput);
-              }
-            }}
-            className="sr-only"
-            autoFocus
-          />
-        </motion.div>
-      )}
 
       {/* Add Tracking Modal */}
       <AddTrackingModal

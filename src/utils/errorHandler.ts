@@ -11,7 +11,7 @@ export const handleApiError = (error: any): string => {
         // Unauthorized - clear auth and redirect
         localStorage.removeItem('slabtrack_token');
         localStorage.removeItem('slabtrack_user');
-        window.location.href = '/login';
+        window.location.href = '/';
         return 'Session expired. Please login again.';
         
       case 403:

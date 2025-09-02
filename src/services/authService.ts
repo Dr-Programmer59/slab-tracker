@@ -15,49 +15,51 @@ interface UserResponse {
 }
 
 export const authService = {
-  // LOGIN FUNCTION - EXACT IMPLEMENTATION FOR JWT
   async login(email: string, password: string): Promise<LoginResponse> {
     try {
-      console.log('🔑 Attempting login for:', email);
-      
-      // EXACT request format required by backend
       const response = await api.post('/auth/login', {
-        email: email.toLowerCase(), // Backend expects lowercase
+        email: email.toLowerCase(),
         password: password
       });
       
-      console.log('📦 Login response:', response.data);
-      
-      // Backend returns: { ok: true, data: { token, user } }
+      // Check API response format: { ok: true, data: { token, user } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Login failed');
+      }
+
       const { token, user } = response.data.data;
       
       if (!token) {
         throw new Error('No token received from server');
       }
       
-      // CRITICAL: Store JWT token and user data
+      // Map API user to frontend User type
+      const mappedUser: User = {
+        id: user._id,
+        email: user.email,
+        displayName: user.displayName,
+        role: user.role === 'admin' ? 'Admin' : 
+              user.role === 'manager' ? 'Manager' : 'Member',
+        status: user.status === 'active' ? 'Active' : 'Disabled',
+        lastLogin: user.lastLoginAt ? new Date(user.lastLoginAt) : undefined,
+        createdAt: new Date(user.createdAt),
+      };
+      
       localStorage.setItem('slabtrack_token', token);
-      localStorage.setItem('slabtrack_user', JSON.stringify(user));
+      localStorage.setItem('slabtrack_user', JSON.stringify(mappedUser));
       
-      console.log('✅ Login successful for:', user.displayName);
-      console.log('🔑 Token stored:', token.substring(0, 20) + '...');
-      
-      return { success: true, user, token };
+      return { success: true, user: mappedUser, token };
     } catch (error: any) {
-      console.error('❌ Login error:', error);
-      
-      // Clear any partial auth data
       localStorage.removeItem('slabtrack_token');
       localStorage.removeItem('slabtrack_user');
       
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Login failed'
+        error: error.response?.data?.error?.message || error.message || 'Login failed'
       };
     }
   },
 
-  // GET CURRENT USER - CRITICAL FOR SESSION VALIDATION
   async getCurrentUser(): Promise<UserResponse> {
     try {
       const token = localStorage.getItem('slabtrack_token');
@@ -65,81 +67,80 @@ export const authService = {
         return { success: false, error: 'No token found' };
       }
       
-      console.log('🔍 Verifying session with /auth/me');
-      
       const response = await api.get('/auth/me');
-      const user = response.data.data.user;
       
-      // Update stored user data with fresh info
+      // Check API response format: { ok: true, data: { user } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Session invalid');
+      }
+
+      const apiUser = response.data.data.user;
+      
+      // Map API user to frontend User type
+      const user: User = {
+        id: apiUser._id,
+        email: apiUser.email,
+        displayName: apiUser.displayName,
+        role: apiUser.role === 'admin' ? 'Admin' : 
+              apiUser.role === 'manager' ? 'Manager' : 'Member',
+        status: apiUser.status === 'active' ? 'Active' : 'Disabled',
+        lastLogin: apiUser.lastLoginAt ? new Date(apiUser.lastLoginAt) : undefined,
+        createdAt: new Date(apiUser.createdAt),
+      };
+      
       localStorage.setItem('slabtrack_user', JSON.stringify(user));
       
-      console.log('✅ Session verified for:', user.displayName);
       return { success: true, user };
     } catch (error: any) {
-      console.error('❌ Session verification failed:', error);
-      
-      // Clear invalid auth data
       localStorage.removeItem('slabtrack_token');
       localStorage.removeItem('slabtrack_user');
       
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || 'Session invalid'
+        error: error.response?.data?.error?.message || error.message || 'Session invalid'
       };
     }
   },
 
-  // LOGOUT FUNCTION
   logout(): void {
-    console.log('🚪 Logging out user');
+    console.log("🔓 Logging out...");  
     localStorage.removeItem('slabtrack_token');
     localStorage.removeItem('slabtrack_user');
     localStorage.removeItem('slabtrack_remember');
-    window.location.href = '/login';
   },
 
-  // CHECK IF AUTHENTICATED
   isAuthenticated(): boolean {
     const token = localStorage.getItem('slabtrack_token');
     const user = this.getStoredUser();
     return !!(token && user);
   },
 
-  // GET STORED USER
   getStoredUser(): User | null {
     try {
       const userStr = localStorage.getItem('slabtrack_user');
       return userStr ? JSON.parse(userStr) : null;
     } catch (error) {
-      console.error('❌ Failed to parse stored user:', error);
       return null;
     }
   },
 
-  // INITIALIZE AUTH ON APP STARTUP
   async initializeAuth(): Promise<boolean> {
     const token = localStorage.getItem('slabtrack_token');
     
     if (!token) {
-      console.log('🔒 No token found - user needs to login');
       return false;
     }
-    
-    console.log('🔄 Found existing token, verifying with backend...');
     
     try {
       const result = await this.getCurrentUser();
       
       if (result.success) {
-        console.log('✅ Session restored successfully');
         return true;
       } else {
-        console.warn('🔒 Session invalid, clearing auth data');
         this.logout();
         return false;
       }
     } catch (error) {
-      console.error('❌ Auth initialization failed:', error);
       this.logout();
       return false;
     }
