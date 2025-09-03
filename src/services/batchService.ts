@@ -56,15 +56,16 @@ export const batchService = {
       if (filters.limit) params.append('limit', filters.limit.toString());
       
       const response = await api.get(`/batches?${params}`);
+      console.log(response)
       
       // Backend uses paginated() wrapper: { items, total, page, limit } - NO success wrapper
-      if (!response.data.items) {
+      if (!response.data.data.items) {
         throw new Error('Invalid response format');
       }
       
       // Map the response to ensure consistent field names
       const mappedData: BatchListResponse = {
-        items: response.data.items.map((batch: any) => ({
+        items:response.data.data.items.map((batch: any) => ({
           _id: batch._id,
           name: batch.name,
           filename: batch.filename,
@@ -99,6 +100,7 @@ export const batchService = {
       const response = await api.get(`/batches/${batchId}`);
       
       // Backend returns batch directly or in data wrapper
+
       const batchData = response.data.batch || response.data;
       
       const mappedData = {
@@ -140,13 +142,13 @@ export const batchService = {
       const response = await api.get(`/batches/${batchId}/rows?${params}`);
       
       // Backend uses paginated() wrapper: { items, total, page, limit } - NO success wrapper
-      if (!response.data.items) {
+      if (!response.data.data.items) {
         throw new Error('Invalid response format');
       }
       
       // Map the response to ensure consistent field names
       const mappedData: BatchRowsResponse = {
-        items: response.data.items.map((row: any) => ({
+        items: response.data.data.items.map((row: any) => ({
           _id: row._id,
           batchId: row.batchId,
           rowNumber: row.rowNumber,
