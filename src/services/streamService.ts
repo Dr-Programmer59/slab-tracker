@@ -117,6 +117,7 @@ export const streamService = {
   // FINALIZE STREAM - CRITICAL FOR P&L
   async finalizeStream(streamId: string, pnlData: PnLData): Promise<ApiResponse<any>> {
     try {
+      const response = await api.post(`/streams/${streamId}/finalize`, {
         grossSales: pnlData.grossSales,
         fees: pnlData.fees || 0,
         shippingCost: pnlData.shippingCost || 0,
