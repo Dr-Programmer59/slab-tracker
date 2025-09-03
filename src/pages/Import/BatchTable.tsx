@@ -89,7 +89,10 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={onFinishBatch}
+                        onClick={() => {
+                          onSelectBatch(batch);
+                          onFinishBatch();
+                        }}
                       >
                         <Lock className="w-4 h-4" />
                         Finish

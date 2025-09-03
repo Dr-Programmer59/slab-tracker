@@ -70,7 +70,19 @@ export const batchService = {
         throw new Error(response.data.error?.message || 'Failed to fetch batches');
       }
       
-      return { success: true, data: response.data.data };
+      // Map the response to ensure consistent field names
+      const apiData = response.data.data;
+      const mappedData = {
+        ...apiData,
+        batches: (apiData.batches || []).map((batch: any) => ({
+          ...batch,
+          createdAt: new Date(batch.createdAt),
+          updatedAt: batch.updatedAt ? new Date(batch.updatedAt) : undefined,
+          lockedAt: batch.lockedAt ? new Date(batch.lockedAt) : undefined
+        }))
+      };
+      
+      return { success: true, data: mappedData };
     } catch (error: any) {
       return { 
         success: false, 
@@ -89,7 +101,19 @@ export const batchService = {
         throw new Error(response.data.error?.message || 'Batch not found');
       }
       
-      return { success: true, data: response.data.data };
+      // Map the response to ensure consistent field names
+      const apiData = response.data.data;
+      const mappedData = {
+        ...apiData,
+        batch: {
+          ...apiData.batch,
+          createdAt: new Date(apiData.batch.createdAt),
+          updatedAt: apiData.batch.updatedAt ? new Date(apiData.batch.updatedAt) : undefined,
+          lockedAt: apiData.batch.lockedAt ? new Date(apiData.batch.lockedAt) : undefined
+        }
+      };
+      
+      return { success: true, data: mappedData };
     } catch (error: any) {
       return { 
         success: false, 
@@ -114,7 +138,19 @@ export const batchService = {
         throw new Error(response.data.error?.message || 'Failed to fetch batch rows');
       }
       
-      return { success: true, data: response.data.data };
+      // Map the response to ensure consistent field names
+      const apiData = response.data.data;
+      const mappedData = {
+        ...apiData,
+        items: (apiData.items || []).map((row: any) => ({
+          ...row,
+          createdAt: new Date(row.createdAt),
+          updatedAt: new Date(row.updatedAt),
+          arrivedAt: row.arrivedAt ? new Date(row.arrivedAt) : undefined
+        }))
+      };
+      
+      return { success: true, data: mappedData };
     } catch (error: any) {
       return { 
         success: false, 

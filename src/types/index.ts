@@ -20,7 +20,7 @@ export interface Card {
 }
 
 export interface Batch {
-  id: string;
+  _id: string;
   name: string;
   filename?: string;
   status: BatchStatus;
@@ -33,12 +33,13 @@ export interface Batch {
     displayName: string;
     email: string;
   };
-  lockedAt?: Date;
+  lockedAt?: Date | string;
   lockedBy?: string;
+  updatedAt?: Date | string;
 }
 
 export interface BatchRow {
-  id: string;
+  _id: string;
   batchId: string;
   rowNumber: number;
   title: string;
@@ -55,12 +56,12 @@ export interface BatchRow {
     message: string;
   }>;
   linkedCardId?: string;
-  arrivedAt?: Date;
+  arrivedAt?: Date | string;
   arrivedBy?: {
     displayName: string;
   };
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 export interface Stream {

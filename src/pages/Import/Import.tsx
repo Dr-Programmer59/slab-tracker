@@ -11,23 +11,19 @@ import { batchService } from '../../services/batchService';
 import toast from 'react-hot-toast';
 
 export function Import() {
-  const [batches, setBatches] = useState<any[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedBatch, setSelectedBatch] = useState<typeof demoBatches[0] | null>(null);
+  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   // Fetch batches on component mount
-  React.useEffect(() => {
-    fetchBatches();
-  }, []);
-
-  const fetchBatches = async () => {
+  const fetchBatches = React.useCallback(async () => {
     setLoading(true);
     try {
       const result = await batchService.getBatches();
       if (result.success && result.data) {
-        setBatches(result.data.items || []);
+        setBatches(result.data.batches || []);
       } else {
         toast.error(result.error || 'Failed to fetch batches');
       }
@@ -36,7 +32,11 @@ export function Import() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  React.useEffect(() => {
+    fetchBatches();
+  }, [fetchBatches]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -83,8 +83,8 @@ export function Import() {
   const handleFinishBatch = async () => {
     if (selectedBatch) {
       try {
-        const idempotencyKey = `finish-${selectedBatch.id}-${Date.now()}`;
-        const result = await batchService.finishBatch(selectedBatch.id, idempotencyKey);
+        const idempotencyKey = `finish-${selectedBatch._id}-${Date.now()}`;
+        const result = await batchService.finishBatch(selectedBatch._id, idempotencyKey);
         
         if (result.success && result.data) {
           toast.success(result.data.message || 'Batch finished successfully!');

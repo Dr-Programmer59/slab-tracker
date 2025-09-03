@@ -13,19 +13,15 @@ interface RowsTableProps {
 }
 
 export function RowsTable({ batch, onBack }: RowsTableProps) {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<BatchRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch rows on component mount
-  React.useEffect(() => {
-    fetchRows();
-  }, [batch.id]);
-
-  const fetchRows = async () => {
+  const fetchRows = React.useCallback(async () => {
     setLoading(true);
     try {
-      const result = await batchService.getBatchRows(batch.id);
+      const result = await batchService.getBatchRows(batch._id);
       if (result.success && result.data) {
         setRows(result.data.items || []);
       } else {
@@ -36,12 +32,16 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [batch._id]);
+
+  React.useEffect(() => {
+    fetchRows();
+  }, [fetchRows]);
 
   const markArrived = async (rowId: string) => {
     try {
       const idempotencyKey = `arrive-${rowId}-${Date.now()}`;
-      const result = await batchService.markRowAsArrived(batch.id, rowId, idempotencyKey);
+      const result = await batchService.markRowAsArrived(batch._id, rowId, idempotencyKey);
       
       if (result.success && result.data) {
         const { card, row, message } = result.data;
@@ -161,7 +161,7 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={() => markArrived(row.id)}
+                        onClick={() => markArrived(row._id)}
                       >
                         <Printer className="w-4 h-4" />
                         Mark Arrived
