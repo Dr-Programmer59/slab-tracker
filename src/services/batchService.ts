@@ -27,7 +27,6 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post('/batches:ingest', formData, {
         headers,
         timeout: 60000
       });
@@ -191,7 +190,6 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post(`/batches/${batchId}/rows/${rowId}:arrive`, {}, {
         headers
       });
       
@@ -218,7 +216,6 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post(`/batches/${batchId}:finish`, {}, {
         headers
       });
       

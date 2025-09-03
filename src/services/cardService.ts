@@ -86,7 +86,7 @@ export const cardService = {
   // GET CARD BY DISPLAY ID (FOR BARCODE SCANNING)
   async getCardByDisplayId(displayId: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.get(`/cards/display/${displayId}`);
+      const response = await api.get(`/cards/${displayId}/display`);
       
       // Check API response format: { ok: true, data: { card } }
       if (!response.data.ok) {

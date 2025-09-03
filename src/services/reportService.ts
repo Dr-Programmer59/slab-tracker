@@ -99,7 +99,6 @@ export const reportService = {
         }
       });
       
-      const response = await api.get(`/reports/${reportType}/export?${params}`, {
         responseType: 'blob'
       });
       
