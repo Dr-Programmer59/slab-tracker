@@ -13,7 +13,7 @@ import type {
 
 export const batchService = {
   // 1) INGEST SPREADSHEET → CREATE A BATCH
-  async ingestSpreadsheet(file: File, name?: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
+  async ingestSpreadsheet(file: File, name?: string, idempotencyKey?: string): Promise<ApiResponse<BatchIngestResponse>> {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -48,7 +48,7 @@ export const batchService = {
   },
 
   // 2) LIST BATCHES
-  async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<any>> {
+  async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<BatchListResponse>> {
     try {
       const params = new URLSearchParams();
       
@@ -58,21 +58,31 @@ export const batchService = {
       
       const response = await api.get(`/batches?${params}`);
       
-      // Backend uses success() wrapper
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to fetch batches');
+      // Backend uses paginated() wrapper: { items, total, page, limit }
+      if (!response.data.items) {
+        throw new Error('Invalid response format');
       }
       
       // Map the response to ensure consistent field names
-      const apiData = response.data.data || response.data;
-      const mappedData = {
-        ...apiData,
-        items: (apiData.items || apiData.batches || []).map((batch: any) => ({
-          ...batch,
+      const mappedData: BatchListResponse = {
+        items: response.data.items.map((batch: any) => ({
+          _id: batch._id,
+          name: batch.name,
+          filename: batch.filename,
+          status: batch.status,
+          totalRows: batch.totalRows,
+          stagedCount: batch.stagedCount,
+          arrivedCount: batch.arrivedCount,
+          skippedCount: batch.skippedCount,
           createdAt: new Date(batch.createdAt),
-          updatedAt: batch.updatedAt ? new Date(batch.updatedAt) : undefined,
-          lockedAt: batch.lockedAt ? new Date(batch.lockedAt) : undefined
-        }))
+          createdBy: batch.createdBy,
+          lockedAt: batch.lockedAt ? new Date(batch.lockedAt) : undefined,
+          lockedBy: batch.lockedBy,
+          updatedAt: batch.updatedAt ? new Date(batch.updatedAt) : undefined
+        })),
+        total: response.data.total,
+        page: response.data.page,
+        limit: response.data.limit
       };
       
       return { success: true, data: mappedData };
@@ -89,20 +99,24 @@ export const batchService = {
     try {
       const response = await api.get(`/batches/${batchId}`);
       
-      // Check API response format: { ok: true, data: { batch } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Batch not found');
-      }
+      // Backend returns batch directly or in data wrapper
+      const batchData = response.data.batch || response.data;
       
-      // Map the response to ensure consistent field names
-      const apiData = response.data.data;
       const mappedData: { batch: Batch } = {
-        ...apiData,
         batch: {
-          ...apiData.batch,
-          createdAt: new Date(apiData.batch.createdAt),
-          updatedAt: apiData.batch.updatedAt ? new Date(apiData.batch.updatedAt) : undefined,
-          lockedAt: apiData.batch.lockedAt ? new Date(apiData.batch.lockedAt) : undefined
+          _id: batchData._id,
+          name: batchData.name,
+          filename: batchData.filename,
+          status: batchData.status,
+          totalRows: batchData.totalRows,
+          stagedCount: batchData.stagedCount,
+          arrivedCount: batchData.arrivedCount,
+          skippedCount: batchData.skippedCount,
+          createdAt: new Date(batchData.createdAt),
+          createdBy: batchData.createdBy,
+          lockedAt: batchData.lockedAt ? new Date(batchData.lockedAt) : undefined,
+          lockedBy: batchData.lockedBy,
+          updatedAt: batchData.updatedAt ? new Date(batchData.updatedAt) : undefined
         }
       };
       
@@ -126,21 +140,36 @@ export const batchService = {
       
       const response = await api.get(`/batches/${batchId}/rows?${params}`);
       
-      // Check API response format: { ok: true, data: { items, total, page, limit } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to fetch batch rows');
+      // Backend uses paginated() wrapper: { items, total, page, limit }
+      if (!response.data.items) {
+        throw new Error('Invalid response format');
       }
       
       // Map the response to ensure consistent field names
-      const apiData = response.data.data;
       const mappedData: BatchRowsResponse = {
-        ...apiData,
-        items: (apiData.items || []).map((row: any) => ({
-          ...row,
+        items: response.data.items.map((row: any) => ({
+          _id: row._id,
+          batchId: row.batchId,
+          rowNumber: row.rowNumber,
+          title: row.title,
+          player: row.player,
+          sport: row.sport,
+          year: row.year,
+          grade: row.grade,
+          purchasePrice: row.purchasePrice,
+          brand: row.brand,
+          notes: row.notes,
+          status: row.status,
+          validationErrors: row.validationErrors || [],
+          linkedCardId: row.linkedCardId,
+          arrivedAt: row.arrivedAt ? new Date(row.arrivedAt) : undefined,
+          arrivedBy: row.arrivedBy,
           createdAt: new Date(row.createdAt),
-          updatedAt: new Date(row.updatedAt),
-          arrivedAt: row.arrivedAt ? new Date(row.arrivedAt) : undefined
-        }))
+          updatedAt: new Date(row.updatedAt)
+        })),
+        total: response.data.total,
+        page: response.data.page,
+        limit: response.data.limit
       };
       
       return { success: true, data: mappedData };
@@ -161,12 +190,12 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post(`/batches/${batchId}/rows/${rowId}/arrive`, {}, {
+      const response = await api.post(`/batches/${batchId}/rows/${rowId}:arrive`, {}, {
         headers
       });
       
-      // Check API response format: { ok: true, data: { card, row, message } }
-      if (!response.data.ok) {
+      // Backend uses success() wrapper: { success: true, data: { card, row, message } }
+      if (!response.data.success) {
         throw new Error(response.data.error?.message || 'Failed to mark row as arrived');
       }
       
@@ -180,7 +209,7 @@ export const batchService = {
   },
 
   // 6) FINISH A BATCH (lock batch and make cards available)
-  async finishBatch(batchId: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
+  async finishBatch(batchId: string, idempotencyKey?: string): Promise<ApiResponse<BatchFinishResponse>> {
     try {
       const headers: Record<string, string> = {};
       
@@ -192,7 +221,7 @@ export const batchService = {
         headers
       });
       
-      // Backend uses success() wrapper
+      // Backend uses success() wrapper: { success: true, data: { batch, cardsUpdated, message } }
       if (!response.data.success) {
         throw new Error(response.data.error?.message || 'Failed to finish batch');
       }
