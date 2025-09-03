@@ -13,7 +13,7 @@ import type {
 
 export const batchService = {
   // 1) INGEST SPREADSHEET → CREATE A BATCH
-  async ingestSpreadsheet(file: File, name?: string, idempotencyKey?: string): Promise<ApiResponse<BatchIngestResponse>> {
+  async ingestSpreadsheet(file: File, name?: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -28,13 +28,13 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post('/batches/ingest', formData, {
+      const response = await api.post('/batches:ingest', formData, {
         headers,
         timeout: 60000
       });
       
-      // Check API response format: { ok: true, data: { batch, validation } }
-      if (!response.data.ok) {
+      // Backend uses success() wrapper: { success: true, data: { batch, validation } }
+      if (!response.data.success) {
         throw new Error(response.data.error?.message || 'Failed to ingest spreadsheet');
       }
       
@@ -48,7 +48,7 @@ export const batchService = {
   },
 
   // 2) LIST BATCHES
-  async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<BatchListResponse>> {
+  async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       
@@ -58,16 +58,16 @@ export const batchService = {
       
       const response = await api.get(`/batches?${params}`);
       
-      // Check API response format: { ok: true, data: { items, total, page, limit } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to fetch batches');
+      // Backend uses success() wrapper
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to fetch batches');
       }
       
       // Map the response to ensure consistent field names
-      const apiData = response.data.data;
+      const apiData = response.data.data || response.data;
       const mappedData = {
         ...apiData,
-        items: (apiData.items || []).map((batch: any) => ({
+        items: (apiData.items || apiData.batches || []).map((batch: any) => ({
           ...batch,
           createdAt: new Date(batch.createdAt),
           updatedAt: batch.updatedAt ? new Date(batch.updatedAt) : undefined,
@@ -79,7 +79,7 @@ export const batchService = {
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to fetch batches'
+        error: error.response?.data?.message || error.message || 'Failed to fetch batches'
       };
     }
   },
@@ -180,7 +180,7 @@ export const batchService = {
   },
 
   // 6) FINISH A BATCH (lock batch and make cards available)
-  async finishBatch(batchId: string, idempotencyKey?: string): Promise<ApiResponse<BatchFinishResponse>> {
+  async finishBatch(batchId: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
     try {
       const headers: Record<string, string> = {};
       
@@ -192,8 +192,8 @@ export const batchService = {
         headers
       });
       
-      // Check API response format: { ok: true, data: { batch, cardsUpdated, message } }
-      if (!response.data.ok) {
+      // Backend uses success() wrapper
+      if (!response.data.success) {
         throw new Error(response.data.error?.message || 'Failed to finish batch');
       }
       
