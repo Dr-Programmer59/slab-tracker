@@ -7,56 +7,66 @@ import { Modal } from '../../components/Common/Modal';
 import { StatusChip } from '../../components/Common/StatusChip';
 import { BatchTable } from './BatchTable';
 import { RowsTable } from './RowsTable';
+import { batchService } from '../../services/batchService';
 import toast from 'react-hot-toast';
 
-const demoBatches = [
-  {
-    id: '1',
-    name: 'January 2024 Import',
-    uploadedBy: 'admin@slabtrack.com',
-    uploadedAt: new Date('2024-01-15'),
-    totalRows: 25,
-    processedRows: 23,
-    status: 'Open' as const,
-  },
-  {
-    id: '2',
-    name: 'December 2023 Import',
-    uploadedBy: 'manager@slabtrack.com',
-    uploadedAt: new Date('2023-12-28'),
-    totalRows: 18,
-    processedRows: 18,
-    status: 'Locked' as const,
-  },
-];
-
 export function Import() {
-  const [batches, setBatches] = useState(demoBatches);
+  const [batches, setBatches] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<typeof demoBatches[0] | null>(null);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // Fetch batches on component mount
+  React.useEffect(() => {
+    fetchBatches();
+  }, []);
+
+  const fetchBatches = async () => {
+    setLoading(true);
+    try {
+      const result = await batchService.getBatches();
+      if (result.success && result.data) {
+        setBatches(result.data.items || []);
+      } else {
+        toast.error(result.error || 'Failed to fetch batches');
+      }
+    } catch (error) {
+      toast.error('Failed to fetch batches');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
 
     setUploading(true);
-    // Simulate upload
-    setTimeout(() => {
-      const newBatch = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: file.name.replace(/\.[^/.]+$/, ''),
-        uploadedBy: 'current@user.com',
-        uploadedAt: new Date(),
-        totalRows: Math.floor(Math.random() * 50) + 10,
-        processedRows: 0,
-        status: 'Open' as const,
-      };
-      
-      setBatches(prev => [newBatch, ...prev]);
-      setUploading(false);
-      toast.success('File uploaded successfully!');
-    }, 2000);
+    
+    // Generate idempotency key
+    const idempotencyKey = `ingest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    batchService.ingestSpreadsheet(file, undefined, idempotencyKey)
+      .then((result) => {
+        if (result.success && result.data) {
+          toast.success('File uploaded and processed successfully!');
+          fetchBatches(); // Refresh the batch list
+          
+          // Show validation summary if there are errors
+          if (result.data.validation?.invalid > 0) {
+            toast.warning(`${result.data.validation.invalid} rows had validation errors`);
+          }
+        } else {
+          toast.error(result.error || 'Failed to upload file');
+        }
+      })
+      .catch((error) => {
+        toast.error('Failed to upload file');
+      })
+      .finally(() => {
+        setUploading(false);
+      });
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -69,16 +79,23 @@ export function Import() {
     multiple: false,
   });
 
-  const handleFinishBatch = () => {
+  const handleFinishBatch = async () => {
     if (selectedBatch) {
-      setBatches(prev => prev.map(batch => 
-        batch.id === selectedBatch.id 
-          ? { ...batch, status: 'Locked' as const }
-          : batch
-      ));
-      setShowFinishModal(false);
-      setSelectedBatch(null);
-      toast.success('Batch locked successfully!');
+      try {
+        const idempotencyKey = `finish-${selectedBatch.id}-${Date.now()}`;
+        const result = await batchService.finishBatch(selectedBatch.id, idempotencyKey);
+        
+        if (result.success && result.data) {
+          toast.success(result.data.message || 'Batch finished successfully!');
+          fetchBatches(); // Refresh the batch list
+          setShowFinishModal(false);
+          setSelectedBatch(null);
+        } else {
+          toast.error(result.error || 'Failed to finish batch');
+        }
+      } catch (error) {
+        toast.error('Failed to finish batch');
+      }
     }
   };
 

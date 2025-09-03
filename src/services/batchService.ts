@@ -1,16 +1,15 @@
 import api from '../utils/api';
 
 interface BatchFilters {
-  status?: string;
-  search?: string;
+  status?: 'Open' | 'Locked' | 'Closed';
   page?: number;
   limit?: number;
 }
 
-interface BatchData {
-  name: string;
-  description?: string;
-  expectedCount?: number;
+interface BatchRowFilters {
+  status?: 'Staged' | 'Arrived' | 'Skipped';
+  page?: number;
+  limit?: number;
 }
 
 interface ApiResponse<T> {
@@ -20,19 +19,54 @@ interface ApiResponse<T> {
 }
 
 export const batchService = {
-  // GET ALL BATCHES - Updated to match exact API response format
+  // 1) INGEST SPREADSHEET → CREATE A BATCH
+  async ingestSpreadsheet(file: File, name?: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (name) {
+        formData.append('name', name);
+      }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'multipart/form-data'
+      };
+      
+      if (idempotencyKey) {
+        headers['X-Idempotency-Key'] = idempotencyKey;
+      }
+
+      const response = await api.post('/batches:ingest', formData, {
+        headers,
+        timeout: 60000
+      });
+      
+      // Check API response format: { ok: true, data: { batch, validation } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to ingest spreadsheet');
+      }
+      
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to ingest spreadsheet'
+      };
+    }
+  },
+
+  // 2) LIST BATCHES
   async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<any>> {
     try {
       const params = new URLSearchParams();
       
       if (filters.status) params.append('status', filters.status);
-      if (filters.search) params.append('search', filters.search);
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.limit) params.append('limit', filters.limit.toString());
       
       const response = await api.get(`/batches?${params}`);
       
-      // Check API response format: { ok: true, data: { batches, pagination } }
+      // Check API response format: { ok: true, data: { items, total, page, limit } }
       if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to fetch batches');
       }
@@ -46,71 +80,100 @@ export const batchService = {
     }
   },
 
-  // CREATE BATCH
-  async createBatch(batchData: BatchData): Promise<ApiResponse<any>> {
+  // 3) READ A SINGLE BATCH
+  async getBatch(batchId: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.post('/batches', {
-        name: batchData.name,
-        description: batchData.description || '',
-        expectedCount: batchData.expectedCount || 0
-      });
+      const response = await api.get(`/batches/${batchId}`);
       
-      // Check API response format: { ok: true, data: { batch, message } }
+      // Check API response format: { ok: true, data: { batch } }
       if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to create batch');
+        throw new Error(response.data.error?.message || 'Batch not found');
       }
       
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to create batch'
+        error: error.response?.data?.error?.message || error.message || 'Batch not found'
       };
     }
   },
 
-  // FILE UPLOAD - CRITICAL IMPLEMENTATION
-  async importSpreadsheet(batchId: string, file: File): Promise<ApiResponse<any>> {
+  // 4) LIST ROWS IN A BATCH
+  async getBatchRows(batchId: string, filters: BatchRowFilters = {}): Promise<ApiResponse<any>> {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const params = new URLSearchParams();
       
-      const response = await api.post(`/batches/${batchId}/import`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        timeout: 60000
-      });
+      if (filters.status) params.append('status', filters.status);
+      if (filters.page) params.append('page', filters.page.toString());
+      if (filters.limit) params.append('limit', filters.limit.toString());
       
-      // Check API response format: { ok: true, data: { message, importedCount, errors, batch } }
+      const response = await api.get(`/batches/${batchId}/rows?${params}`);
+      
+      // Check API response format: { ok: true, data: { items, total, page, limit } }
       if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to import file');
+        throw new Error(response.data.error?.message || 'Failed to fetch batch rows');
       }
       
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to import file'
+        error: error.response?.data?.error?.message || error.message || 'Failed to fetch batch rows'
       };
     }
   },
 
-  // START INTAKE PROCESS
-  async startIntake(batchId: string): Promise<ApiResponse<any>> {
+  // 5) MARK A ROW AS ARRIVED (creates Card and Label)
+  async markRowAsArrived(batchId: string, rowId: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
     try {
-      const response = await api.post(`/batches/${batchId}/intake`);
+      const headers: Record<string, string> = {};
       
-      // Check API response format: { ok: true, data: { message, batch } }
+      if (idempotencyKey) {
+        headers['X-Idempotency-Key'] = idempotencyKey;
+      }
+
+      const response = await api.post(`/batches/${batchId}/rows/${rowId}:arrive`, {}, {
+        headers
+      });
+      
+      // Check API response format: { ok: true, data: { card, row, message } }
       if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to start intake');
+        throw new Error(response.data.error?.message || 'Failed to mark row as arrived');
       }
       
       return { success: true, data: response.data.data };
     } catch (error: any) {
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to start intake'
+        error: error.response?.data?.error?.message || error.message || 'Failed to mark row as arrived'
+      };
+    }
+  },
+
+  // 6) FINISH A BATCH (lock batch and make cards available)
+  async finishBatch(batchId: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
+    try {
+      const headers: Record<string, string> = {};
+      
+      if (idempotencyKey) {
+        headers['X-Idempotency-Key'] = idempotencyKey;
+      }
+
+      const response = await api.post(`/batches/${batchId}:finish`, {}, {
+        headers
+      });
+      
+      // Check API response format: { ok: true, data: { batch, cardsUpdated, message } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to finish batch');
+      }
+      
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to finish batch'
       };
     }
   }

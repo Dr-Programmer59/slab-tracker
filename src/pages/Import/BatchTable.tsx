@@ -26,7 +26,7 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
           <thead>
             <tr className="border-b border-slate-700">
               <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Name</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Uploaded By</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Created By</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Date</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Rows</th>
               <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Status</th>
@@ -48,25 +48,27 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-300 text-sm">{batch.uploadedBy}</span>
+                    <span className="text-slate-300 text-sm">
+                      {batch.createdBy?.displayName || 'Unknown'}
+                    </span>
                   </div>
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-slate-400" />
                     <span className="text-slate-300 text-sm">
-                      {batch.uploadedAt.toLocaleDateString()}
+                      {new Date(batch.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </td>
                 <td className="py-4 px-4">
                   <span className="text-white font-medium">
-                    {batch.processedRows}/{batch.totalRows}
+                    {batch.arrivedCount}/{batch.totalRows}
                   </span>
                   <div className="w-full bg-slate-700 rounded-full h-1 mt-1">
                     <div 
                       className="bg-indigo-500 h-1 rounded-full transition-all"
-                      style={{ width: `${(batch.processedRows / batch.totalRows) * 100}%` }}
+                      style={{ width: `${batch.totalRows > 0 ? (batch.arrivedCount / batch.totalRows) * 100 : 0}%` }}
                     />
                   </div>
                 </td>

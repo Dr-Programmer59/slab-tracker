@@ -22,12 +22,45 @@ export interface Card {
 export interface Batch {
   id: string;
   name: string;
-  uploadedBy: string;
-  uploadedAt: Date;
-  totalRows: number;
-  processedRows: number;
+  filename?: string;
   status: BatchStatus;
-  filePath?: string;
+  totalRows: number;
+  stagedCount: number;
+  arrivedCount: number;
+  skippedCount: number;
+  createdAt: Date;
+  createdBy?: {
+    displayName: string;
+    email: string;
+  };
+  lockedAt?: Date;
+  lockedBy?: string;
+}
+
+export interface BatchRow {
+  id: string;
+  batchId: string;
+  rowNumber: number;
+  title: string;
+  player?: string;
+  sport?: string;
+  year?: number;
+  grade?: string;
+  purchasePrice: number;
+  brand?: string;
+  notes?: string;
+  status: BatchRowStatus;
+  validationErrors: Array<{
+    field: string;
+    message: string;
+  }>;
+  linkedCardId?: string;
+  arrivedAt?: Date;
+  arrivedBy?: {
+    displayName: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Stream {
@@ -82,6 +115,7 @@ export type CardStatus =
 
 export type StreamStatus = 'Draft' | 'Locked' | 'Finalized';
 export type BatchStatus = 'Open' | 'Locked' | 'Closed';
+export type BatchRowStatus = 'Staged' | 'Arrived' | 'Skipped';
 export type UserRole = 'admin' | 'manager' | 'member';
 export type UserStatus = 'Active' | 'Disabled';
 

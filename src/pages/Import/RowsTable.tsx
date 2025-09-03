@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Search, Check, AlertTriangle, Printer } from 'lucide-react';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
-import type { Batch, CardStatus } from '../../types';
+import type { Batch, BatchRowStatus } from '../../types';
+import { batchService } from '../../services/batchService';
 import toast from 'react-hot-toast';
 
 interface RowsTableProps {
@@ -11,106 +12,51 @@ interface RowsTableProps {
   onBack: () => void;
 }
 
-const demoRows = [
-  {
-    id: '1',
-    title: '2023 Topps Chrome',
-    player: 'Ronald Acuña Jr.',
-    sport: 'Baseball',
-    year: 2023,
-    grade: 'PSA 10',
-    purchasePrice: 125.00,
-    status: 'Staged' as CardStatus,
-    validation: 'valid',
-  },
-  {
-    id: '2',
-    title: '2022 Panini Prizm',
-    player: 'Ja Morant',
-    sport: 'Basketball',
-    year: 2022,
-    grade: 'BGS 9.5',
-    purchasePrice: 85.00,
-    status: 'Arrived' as CardStatus,
-    validation: 'valid',
-  },
-  {
-    id: '3',
-    title: '',
-    player: 'Gunnar Henderson',
-    sport: 'Baseball',
-    year: 2023,
-    grade: 'PSA 9',
-    purchasePrice: 45.00,
-    status: 'Staged' as CardStatus,
-    validation: 'error',
-  },
-];
-
 export function RowsTable({ batch, onBack }: RowsTableProps) {
-  const [rows, setRows] = useState(demoRows);
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const markArrived = async (rowId: string) => {
-    const row = rows.find(r => r.id === rowId);
-    if (!row) return;
+  // Fetch rows on component mount
+  React.useEffect(() => {
+    fetchRows();
+  }, [batch.id]);
 
-    // Optimistic update
-    setRows(prev => prev.map(r => 
-      r.id === rowId ? { ...r, status: 'Arrived' as CardStatus } : r
-    ));
-
-    // Generate label and print
+  const fetchRows = async () => {
+    setLoading(true);
     try {
-      await generateLabel(row);
-      toast.success('Card marked as arrived and label printed!');
+      const result = await batchService.getBatchRows(batch.id);
+      if (result.success && result.data) {
+        setRows(result.data.items || []);
+      } else {
+        toast.error(result.error || 'Failed to fetch rows');
+      }
     } catch (error) {
-      // Revert on error
-      setRows(prev => prev.map(r => 
-        r.id === rowId ? { ...r, status: 'Staged' as CardStatus } : r
-      ));
-      toast.error('Failed to process arrival');
+      toast.error('Failed to fetch rows');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const generateLabel = async (row: any) => {
-    // Simulate label generation
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // In real app, this would generate a PDF and open print dialog
-    const labelHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-            .label { width: 2in; height: 1in; border: 1px solid #000; padding: 8px; }
-            .display-id { font-size: 16px; font-weight: bold; }
-            .title { font-size: 12px; margin: 4px 0; }
-            .details { font-size: 10px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="label">
-            <div class="display-id">ST-2024-${String(Math.floor(Math.random() * 999999)).padStart(6, '0')}</div>
-            <div class="title">${row.title}</div>
-            <div class="details">${row.player} • ${row.sport} • ${row.year}</div>
-          </div>
-        </body>
-      </html>
-    `;
-    
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(labelHtml);
-      printWindow.document.close();
-      printWindow.print();
+  const markArrived = async (rowId: string) => {
+    try {
+      const idempotencyKey = `arrive-${rowId}-${Date.now()}`;
+      const result = await batchService.markRowAsArrived(batch.id, rowId, idempotencyKey);
+      
+      if (result.success && result.data) {
+        toast.success(result.data.message || 'Card marked as arrived and label generated!');
+        fetchRows(); // Refresh the rows
+      } else {
+        toast.error(result.error || 'Failed to mark as arrived');
+      }
+    } catch (error) {
+      toast.error('Failed to mark as arrived');
     }
   };
 
   const filteredRows = rows.filter(row =>
-    row.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    row.player.toLowerCase().includes(searchQuery.toLowerCase())
+    (row.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (row.player || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -124,7 +70,7 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
           <div>
             <h3 className="text-lg font-semibold text-white">{batch.name}</h3>
             <p className="text-sm text-slate-400">
-              {batch.processedRows} of {batch.totalRows} rows processed
+              {batch.arrivedCount} of {batch.totalRows} rows processed
             </p>
           </div>
         </div>
@@ -143,77 +89,93 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
       </div>
 
       {/* Rows Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-slate-700">
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Title</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Player</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Details</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Price</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Status</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Validation</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRows.map((row, index) => (
-              <motion.tr
-                key={row.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
-              >
-                <td className="py-4 px-4">
-                  <span className="text-white font-medium">{row.title || '—'}</span>
-                </td>
-                <td className="py-4 px-4">
-                  <span className="text-slate-300">{row.player}</span>
-                </td>
-                <td className="py-4 px-4">
-                  <div className="text-sm">
-                    <div className="text-slate-300">{row.sport} • {row.year}</div>
-                    {row.grade && <div className="text-slate-400">{row.grade}</div>}
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  <span className="text-white font-medium">${row.purchasePrice}</span>
-                </td>
-                <td className="py-4 px-4">
-                  <StatusChip status={row.status} />
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
-                    {row.validation === 'valid' ? (
-                      <Check className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <AlertTriangle className="w-4 h-4 text-amber-500" />
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
+          <p className="text-slate-400 mt-2">Loading rows...</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-700">
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Row #</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Title</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Player</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Details</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Price</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Status</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Validation</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRows.map((row, index) => (
+                <motion.tr
+                  key={row.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
+                >
+                  <td className="py-4 px-4">
+                    <span className="text-slate-400 text-sm">#{row.rowNumber}</span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="text-white font-medium">{row.title || '—'}</span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="text-slate-300">{row.player || '—'}</span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="text-sm">
+                      <div className="text-slate-300">
+                        {row.sport && row.year ? `${row.sport} • ${row.year}` : (row.sport || row.year || '—')}
+                      </div>
+                      {row.grade && <div className="text-slate-400">{row.grade}</div>}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="text-white font-medium">${row.purchasePrice}</span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <StatusChip status={row.status} />
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-2">
+                      {row.validationErrors.length === 0 ? (
+                        <Check className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      )}
+                      <span className={`text-xs ${
+                        row.validationErrors.length === 0 ? 'text-green-400' : 'text-amber-500'
+                      }`}>
+                        {row.validationErrors.length === 0 ? 'Valid' : `${row.validationErrors.length} errors`}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4">
+                    {row.status === 'Staged' && row.validationErrors.length === 0 && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => markArrived(row.id)}
+                      >
+                        <Printer className="w-4 h-4" />
+                        Mark Arrived
+                      </Button>
                     )}
-                    <span className={`text-xs ${
-                      row.validation === 'valid' ? 'text-green-400' : 'text-amber-500'
-                    }`}>
-                      {row.validation === 'valid' ? 'Valid' : 'Missing title'}
-                    </span>
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  {row.status === 'Staged' && row.validation === 'valid' && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => markArrived(row.id)}
-                    >
-                      <Printer className="w-4 h-4" />
-                      Mark Arrived
-                    </Button>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    {row.status === 'Arrived' && row.linkedCardId && (
+                      <span className="text-green-400 text-sm">✓ Card Created</span>
+                    )}
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
