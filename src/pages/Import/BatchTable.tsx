@@ -49,7 +49,7 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-slate-400" />
                     <span className="text-slate-300 text-sm">
-                      {batch.createdBy?.displayName || 'Unknown'}
+                      {batch.createdBy.displayName || 'Unknown'}
                     </span>
                   </div>
                 </td>

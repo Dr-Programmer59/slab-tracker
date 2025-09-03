@@ -7,8 +7,7 @@ import type {
   BatchListResponse,
   BatchRowsResponse,
   BatchRowArriveResponse,
-  BatchFinishResponse,
-  Batch
+  BatchFinishResponse
 } from '../types';
 
 export const batchService = {
@@ -58,7 +57,7 @@ export const batchService = {
       
       const response = await api.get(`/batches?${params}`);
       
-      // Backend uses paginated() wrapper: { items, total, page, limit }
+      // Backend uses paginated() wrapper: { items, total, page, limit } - NO success wrapper
       if (!response.data.items) {
         throw new Error('Invalid response format');
       }
@@ -95,14 +94,14 @@ export const batchService = {
   },
 
   // 3) READ A SINGLE BATCH
-  async getBatch(batchId: string): Promise<ApiResponse<{ batch: Batch }>> {
+  async getBatch(batchId: string): Promise<ApiResponse<{ batch: any }>> {
     try {
       const response = await api.get(`/batches/${batchId}`);
       
       // Backend returns batch directly or in data wrapper
       const batchData = response.data.batch || response.data;
       
-      const mappedData: { batch: Batch } = {
+      const mappedData = {
         batch: {
           _id: batchData._id,
           name: batchData.name,
@@ -140,7 +139,7 @@ export const batchService = {
       
       const response = await api.get(`/batches/${batchId}/rows?${params}`);
       
-      // Backend uses paginated() wrapper: { items, total, page, limit }
+      // Backend uses paginated() wrapper: { items, total, page, limit } - NO success wrapper
       if (!response.data.items) {
         throw new Error('Invalid response format');
       }

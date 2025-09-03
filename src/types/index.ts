@@ -29,12 +29,17 @@ export interface Batch {
   arrivedCount: number;
   skippedCount: number;
   createdAt: Date;
-  createdBy?: {
+  createdBy: {
+    _id: string;
     displayName: string;
     email: string;
   };
   lockedAt?: Date | string;
-  lockedBy?: string;
+  lockedBy?: {
+    _id: string;
+    displayName: string;
+    email: string;
+  };
   updatedAt?: Date | string;
 }
 
@@ -58,6 +63,7 @@ export interface BatchRow {
   linkedCardId?: string;
   arrivedAt?: Date | string;
   arrivedBy?: {
+    _id: string;
     displayName: string;
   };
   createdAt: Date | string;
