@@ -188,7 +188,7 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post(`/batches/${batchId}/finish`, {}, {
+      const response = await api.post(`/batches/${batchId}:finish`, {}, {
         headers
       });
       
