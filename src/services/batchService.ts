@@ -1,26 +1,19 @@
 import api from '../utils/api';
-
-interface BatchFilters {
-  status?: 'Open' | 'Locked' | 'Closed';
-  page?: number;
-  limit?: number;
-}
-
-interface BatchRowFilters {
-  status?: 'Staged' | 'Arrived' | 'Skipped';
-  page?: number;
-  limit?: number;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+import type { 
+  BatchFilters, 
+  BatchRowFilters, 
+  ApiResponse, 
+  BatchIngestResponse,
+  BatchListResponse,
+  BatchRowsResponse,
+  BatchRowArriveResponse,
+  BatchFinishResponse,
+  Batch
+} from '../types';
 
 export const batchService = {
   // 1) INGEST SPREADSHEET → CREATE A BATCH
-  async ingestSpreadsheet(file: File, name?: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
+  async ingestSpreadsheet(file: File, name?: string, idempotencyKey?: string): Promise<ApiResponse<BatchIngestResponse>> {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -55,7 +48,7 @@ export const batchService = {
   },
 
   // 2) LIST BATCHES
-  async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<any>> {
+  async getBatches(filters: BatchFilters = {}): Promise<ApiResponse<BatchListResponse>> {
     try {
       const params = new URLSearchParams();
       
@@ -74,7 +67,7 @@ export const batchService = {
       const apiData = response.data.data;
       const mappedData = {
         ...apiData,
-        batches: (apiData.batches || []).map((batch: any) => ({
+        items: (apiData.items || []).map((batch: any) => ({
           ...batch,
           createdAt: new Date(batch.createdAt),
           updatedAt: batch.updatedAt ? new Date(batch.updatedAt) : undefined,
@@ -92,7 +85,7 @@ export const batchService = {
   },
 
   // 3) READ A SINGLE BATCH
-  async getBatch(batchId: string): Promise<ApiResponse<any>> {
+  async getBatch(batchId: string): Promise<ApiResponse<{ batch: Batch }>> {
     try {
       const response = await api.get(`/batches/${batchId}`);
       
@@ -103,7 +96,7 @@ export const batchService = {
       
       // Map the response to ensure consistent field names
       const apiData = response.data.data;
-      const mappedData = {
+      const mappedData: { batch: Batch } = {
         ...apiData,
         batch: {
           ...apiData.batch,
@@ -123,7 +116,7 @@ export const batchService = {
   },
 
   // 4) LIST ROWS IN A BATCH
-  async getBatchRows(batchId: string, filters: BatchRowFilters = {}): Promise<ApiResponse<any>> {
+  async getBatchRows(batchId: string, filters: BatchRowFilters = {}): Promise<ApiResponse<BatchRowsResponse>> {
     try {
       const params = new URLSearchParams();
       
@@ -140,7 +133,7 @@ export const batchService = {
       
       // Map the response to ensure consistent field names
       const apiData = response.data.data;
-      const mappedData = {
+      const mappedData: BatchRowsResponse = {
         ...apiData,
         items: (apiData.items || []).map((row: any) => ({
           ...row,
@@ -160,7 +153,7 @@ export const batchService = {
   },
 
   // 5) MARK A ROW AS ARRIVED (creates Card and Label)
-  async markRowAsArrived(batchId: string, rowId: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
+  async markRowAsArrived(batchId: string, rowId: string, idempotencyKey?: string): Promise<ApiResponse<BatchRowArriveResponse>> {
     try {
       const headers: Record<string, string> = {};
       
@@ -187,7 +180,7 @@ export const batchService = {
   },
 
   // 6) FINISH A BATCH (lock batch and make cards available)
-  async finishBatch(batchId: string, idempotencyKey?: string): Promise<ApiResponse<any>> {
+  async finishBatch(batchId: string, idempotencyKey?: string): Promise<ApiResponse<BatchFinishResponse>> {
     try {
       const headers: Record<string, string> = {};
       

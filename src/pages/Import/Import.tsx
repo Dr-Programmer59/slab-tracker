@@ -8,6 +8,7 @@ import { StatusChip } from '../../components/Common/StatusChip';
 import { BatchTable } from './BatchTable';
 import { RowsTable } from './RowsTable';
 import { batchService } from '../../services/batchService';
+import type { Batch } from '../../types';
 import toast from 'react-hot-toast';
 
 export function Import() {
@@ -23,7 +24,7 @@ export function Import() {
     try {
       const result = await batchService.getBatches();
       if (result.success && result.data) {
-        setBatches(result.data.batches || []);
+        setBatches(result.data.items || []);
       } else {
         toast.error(result.error || 'Failed to fetch batches');
       }
@@ -38,7 +39,7 @@ export function Import() {
     fetchBatches();
   }, [fetchBatches]);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
 
@@ -47,28 +48,26 @@ export function Import() {
     // Generate idempotency key
     const idempotencyKey = `ingest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    batchService.ingestSpreadsheet(file, undefined, idempotencyKey)
-      .then((result) => {
-        if (result.success && result.data) {
-          const { batch, validation } = result.data;
-          toast.success(`Batch "${batch.name}" created successfully!`);
-          fetchBatches(); // Refresh the batch list
-          
-          // Show validation summary if there are errors
-          if (validation?.invalid > 0) {
-            toast.warning(`${validation.invalid} rows had validation errors`);
-          }
-        } else {
-          toast.error(result.error || 'Failed to upload file');
+    try {
+      const result = await batchService.ingestSpreadsheet(file, undefined, idempotencyKey);
+      if (result.success && result.data) {
+        const { batch, validation } = result.data;
+        toast.success(`Batch "${batch.name}" created successfully!`);
+        fetchBatches(); // Refresh the batch list
+        
+        // Show validation summary if there are errors
+        if (validation?.invalid > 0) {
+          toast.warning(`${validation.invalid} rows had validation errors`);
         }
-      })
-      .catch((error) => {
-        toast.error('Failed to upload file');
-      })
-      .finally(() => {
-        setUploading(false);
-      });
-  }, []);
+      } else {
+        toast.error(result.error || 'Failed to upload file');
+      }
+    } catch (error) {
+      toast.error('Failed to upload file');
+    } finally {
+      setUploading(false);
+    }
+  }, [fetchBatches]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

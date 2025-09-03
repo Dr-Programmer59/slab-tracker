@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Search, Check, AlertTriangle, Printer } from 'lucide-react';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
-import type { Batch, BatchRowStatus } from '../../types';
+import type { Batch, BatchRow } from '../../types';
 import { batchService } from '../../services/batchService';
 import toast from 'react-hot-toast';
 

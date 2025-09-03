@@ -64,6 +64,96 @@ export interface BatchRow {
   updatedAt: Date | string;
 }
 
+// Batch API Response Types
+export interface BatchIngestResponse {
+  batch: Batch;
+  validation: {
+    valid: number;
+    invalid: number;
+    errors: Array<{
+      row: number;
+      errors: Array<{
+        field: string;
+        message: string;
+      }>;
+    }>;
+  };
+}
+
+export interface BatchListResponse {
+  items: Batch[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface BatchRowsResponse {
+  items: BatchRow[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface BatchRowArriveResponse {
+  card: {
+    _id: string;
+    displayId: string;
+    title: string;
+    player?: string;
+    sport?: string;
+    year?: number;
+    grade?: string;
+    purchasePrice: number;
+    brand?: string;
+    notes?: string;
+    status: string;
+    batchId: string;
+    sourceRowId: string;
+    barcodePayload?: string;
+    qrUrl?: string;
+    labelPath?: string;
+    createdBy?: {
+      displayName: string;
+      email: string;
+    };
+    createdAt: Date | string;
+    updatedAt: Date | string;
+  };
+  row: BatchRow;
+  message: string;
+}
+
+export interface BatchFinishResponse {
+  batch: {
+    _id: string;
+    status: BatchStatus;
+    lockedAt: Date | string;
+    lockedBy: string;
+  };
+  cardsUpdated: number;
+  message: string;
+}
+
+// Batch Service Filter Types
+export interface BatchFilters {
+  status?: BatchStatus;
+  page?: number;
+  limit?: number;
+}
+
+export interface BatchRowFilters {
+  status?: BatchRowStatus;
+  page?: number;
+  limit?: number;
+}
+
+// API Response Wrapper
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
 export interface Stream {
   id: string;
   title: string;
