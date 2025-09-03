@@ -50,12 +50,13 @@ export function Import() {
     batchService.ingestSpreadsheet(file, undefined, idempotencyKey)
       .then((result) => {
         if (result.success && result.data) {
-          toast.success('File uploaded and processed successfully!');
+          const { batch, validation } = result.data;
+          toast.success(`Batch "${batch.name}" created successfully!`);
           fetchBatches(); // Refresh the batch list
           
           // Show validation summary if there are errors
-          if (result.data.validation?.invalid > 0) {
-            toast.warning(`${result.data.validation.invalid} rows had validation errors`);
+          if (validation?.invalid > 0) {
+            toast.warning(`${validation.invalid} rows had validation errors`);
           }
         } else {
           toast.error(result.error || 'Failed to upload file');

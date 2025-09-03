@@ -28,15 +28,14 @@ export const batchService = {
         formData.append('name', name);
       }
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'multipart/form-data'
-      };
+      const headers: Record<string, string> = {};
       
+      // Do NOT set Content-Type manually for multipart - let browser set boundary
       if (idempotencyKey) {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post('/batches:ingest', formData, {
+      const response = await api.post('/batches/ingest', formData, {
         headers,
         timeout: 60000
       });
@@ -133,7 +132,7 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post(`/batches/${batchId}/rows/${rowId}:arrive`, {}, {
+      const response = await api.post(`/batches/${batchId}/rows/${rowId}/arrive`, {}, {
         headers
       });
       
@@ -160,7 +159,7 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
-      const response = await api.post(`/batches/${batchId}:finish`, {}, {
+      const response = await api.post(`/batches/${batchId}/finish`, {}, {
         headers
       });
       

@@ -63,12 +63,12 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
                 </td>
                 <td className="py-4 px-4">
                   <span className="text-white font-medium">
-                    {batch.arrivedCount}/{batch.totalRows}
+                    {batch.arrivedCount || 0}/{batch.totalRows}
                   </span>
                   <div className="w-full bg-slate-700 rounded-full h-1 mt-1">
                     <div 
                       className="bg-indigo-500 h-1 rounded-full transition-all"
-                      style={{ width: `${batch.totalRows > 0 ? (batch.arrivedCount / batch.totalRows) * 100 : 0}%` }}
+                      style={{ width: `${batch.totalRows > 0 ? ((batch.arrivedCount || 0) / batch.totalRows) * 100 : 0}%` }}
                     />
                   </div>
                 </td>

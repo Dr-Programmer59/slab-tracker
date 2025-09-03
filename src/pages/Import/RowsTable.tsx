@@ -44,7 +44,8 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
       const result = await batchService.markRowAsArrived(batch.id, rowId, idempotencyKey);
       
       if (result.success && result.data) {
-        toast.success(result.data.message || 'Card marked as arrived and label generated!');
+        const { card, row, message } = result.data;
+        toast.success(message || 'Card marked as arrived and label generated!');
         fetchRows(); // Refresh the rows
       } else {
         toast.error(result.error || 'Failed to mark as arrived');
