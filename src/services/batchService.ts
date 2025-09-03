@@ -27,6 +27,7 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
+      const response = await api.post('/batches/ingest', formData, {
         headers,
         timeout: 60000
       });
@@ -55,7 +56,7 @@ export const batchService = {
       if (filters.limit) params.append('limit', filters.limit.toString());
       
       const response = await api.get(`/batches?${params}`);
-      console.log(response)
+      console.log(response);
       
       // Backend uses paginated() wrapper: { items, total, page, limit } - NO success wrapper
       if (!response.data.data.items) {
@@ -64,7 +65,7 @@ export const batchService = {
       
       // Map the response to ensure consistent field names
       const mappedData: BatchListResponse = {
-        items:response.data.data.items.map((batch: any) => ({
+        items: response.data.data.items.map((batch: any) => ({
           _id: batch._id,
           name: batch.name,
           filename: batch.filename,
@@ -190,6 +191,7 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
+      const response = await api.post(`/batches/${batchId}/rows/${rowId}/arrive`, {}, {
         headers
       });
       
@@ -216,6 +218,7 @@ export const batchService = {
         headers['X-Idempotency-Key'] = idempotencyKey;
       }
 
+      const response = await api.post(`/batches/${batchId}/finish`, {}, {
         headers
       });
       
