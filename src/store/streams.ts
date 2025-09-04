@@ -48,10 +48,11 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const result = await streamService.getStreams();
-      
-      if (result.success && result.data) {
+      // console.log(result,"result in fetch streams")
+      if ( result.data.data.items) {
         // Access the exact API response structure: result.data.data (array) and result.data.pagination
-        const apiStreams = result.data.data || [];
+        const apiStreams = result.data.data.items || [];
+        // console.log(apiStreams,"api streams")
         const streams: Stream[] = apiStreams.map((apiStream: any) => ({
           id: apiStream.id || apiStream._id,
           title: apiStream.title,
