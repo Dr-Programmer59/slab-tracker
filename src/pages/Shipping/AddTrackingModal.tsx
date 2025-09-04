@@ -11,7 +11,7 @@ interface AddTrackingModalProps {
 }
 
 export function AddTrackingModal({ isOpen, onClose, item }: AddTrackingModalProps) {
-  const { updateCard } = useInventoryStore();
+  const { updateCardStatus } = useInventoryStore();
   const [trackingData, setTrackingData] = useState({
     carrier: 'USPS',
     trackingNumber: '',
@@ -25,10 +25,9 @@ export function AddTrackingModal({ isOpen, onClose, item }: AddTrackingModalProp
       return;
     }
 
-    updateCard(item.id, { 
-      status: 'Shipped',
+    updateCardStatus(item.id, 'Shipped',
       // In real app, would store tracking data
-    });
+  );
 
     toast.success(`Item shipped via ${trackingData.carrier}!`);
     onClose();
