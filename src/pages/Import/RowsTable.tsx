@@ -5,6 +5,7 @@ import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
 import type { Batch, BatchRow } from '../../types';
 import { batchService } from '../../services/batchService';
+import { config } from '../../utils/config';
 import toast from 'react-hot-toast';
 
 interface RowsTableProps {
@@ -46,6 +47,13 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
       if (result.success && result.data) {
         const { card, row, message } = result.data;
         toast.success(message || 'Card marked as arrived and label generated!');
+        
+        // Automatically open the generated label
+        if (card.displayId) {
+          const labelUrl = config.getLabelUrl(card.displayId);
+          window.open(labelUrl, '_blank');
+        }
+        
         fetchRows(); // Refresh the rows
       } else {
         toast.error(result.error || 'Failed to mark as arrived');

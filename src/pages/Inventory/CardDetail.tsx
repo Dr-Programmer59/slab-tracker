@@ -5,6 +5,7 @@ import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
 import { useInventoryStore } from '../../store/inventory';
 import { usePermissions } from '../../hooks/usePermissions';
+import { config } from '../../utils/config';
 import type { Card } from '../../types';
 import toast from 'react-hot-toast';
 
@@ -40,8 +41,10 @@ export function CardDetail({ card }: CardDetailProps) {
   };
 
   const handlePrintLabel = () => {
-    generateLabel(card.id);
-    toast.success('Label sent to printer!');
+    // Open the PDF label from backend storage
+    const labelUrl = config.getLabelUrl(card.displayId);
+    window.open(labelUrl, '_blank');
+    toast.success('Label opened in new tab!');
   };
 
   return (

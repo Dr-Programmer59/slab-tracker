@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { cardService } from '../services/cardService';
 import { handleApiError } from '../utils/errorHandler';
+import { config } from '../utils/config';
 import toast from 'react-hot-toast';
 import type { Card, FilterState, CardStatus } from '../types';
 
@@ -248,34 +249,9 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     const { cards } = get();
     const card = cards.find(c => c.id === id);
     if (card) {
-      const labelHtml = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-              .label { width: 2in; height: 1in; border: 1px solid #000; padding: 8px; }
-              .display-id { font-size: 16px; font-weight: bold; }
-              .title { font-size: 12px; margin: 4px 0; }
-              .details { font-size: 10px; color: #666; }
-            </style>
-          </head>
-          <body>
-            <div class="label">
-              <div class="display-id">${card.displayId}</div>
-              <div class="title">${card.title}</div>
-              <div class="details">${card.player} • ${card.sport} • ${card.year}</div>
-            </div>
-          </body>
-        </html>
-      `;
-      
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(labelHtml);
-        printWindow.document.close();
-        printWindow.print();
-      }
+      // Open the PDF label from backend storage
+      const labelUrl = config.getLabelUrl(card.displayId);
+      window.open(labelUrl, '_blank');
     }
   },
 
