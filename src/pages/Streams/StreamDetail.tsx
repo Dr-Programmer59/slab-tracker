@@ -518,89 +518,202 @@ export function StreamDetail() {
         isOpen={showFinalizeModal}
         onClose={() => setShowFinalizeModal(false)}
         title="Finalize Stream"
+        size="lg"
       >
         <div className="space-y-4">
-          <p className="text-slate-300">
-            Enter the final sales data to calculate profit and complete the stream.
-          </p>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Gross Sales
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={finalizeData.grossSales}
-              onChange={(e) => setFinalizeData({ 
-                ...finalizeData, 
-                grossSales: parseFloat(e.target.value) || 0 
-              })}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
-              placeholder="0.00"
-            />
+          {/* Pre-Finalization Info */}
+          <div className="bg-slate-700 rounded-lg p-4">
+            <h4 className="font-medium text-white mb-3">Stream Summary</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-slate-400">Stream:</span>
+                <span className="text-white ml-2">{currentStream.title}</span>
+              </div>
+              <div>
+                <span className="text-slate-400">Status:</span>
+                <span className="text-white ml-2">{currentStream.status}</span>
+              </div>
+              <div>
+                <span className="text-slate-400">Total Items:</span>
+                <span className="text-white ml-2">{currentStream.totalItems}</span>
+              </div>
+              <div>
+                <span className="text-slate-400">Total Cost:</span>
+                <span className="text-white ml-2">${currentStream.totalCost}</span>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Platform Fees
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={finalizeData.fees}
-              onChange={(e) => setFinalizeData({ 
-                ...finalizeData, 
-                fees: parseFloat(e.target.value) || 0 
-              })}
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
-              placeholder="0.00"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2">
+          {/* Financial Input Section */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-white">Financial Data Entry</h4>
+            
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Gross Sales <span className="text-red-400">*</span>
+              </label>
               <input
-                type="checkbox"
-                checked={finalizeData.bulkSale}
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                value={finalizeData.grossSales || ''}
                 onChange={(e) => setFinalizeData({ 
                   ...finalizeData, 
-                  bulkSale: e.target.checked 
+                  grossSales: parseFloat(e.target.value) || 0 
                 })}
-                className="rounded"
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="0.00"
               />
-              <span className="text-slate-300 text-sm">Bulk Sale</span>
-            </label>
+              <p className="text-xs text-slate-400 mt-1">Total revenue from all sales in this stream</p>
+            </div>
+
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Platform Fees
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={finalizeData.fees || ''}
+                onChange={(e) => setFinalizeData({ 
+                  ...finalizeData, 
+                  fees: parseFloat(e.target.value) || 0 
+                })}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="0.00"
+              />
+              <p className="text-xs text-slate-400 mt-1">Processing fees, platform commissions, etc. (defaults to $0.00)</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-3">
+                Sale Type
+              </label>
+              <div className="space-y-3">
+                <label className="flex items-start gap-3 p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    name="saleType"
+                    checked={!finalizeData.bulkSale}
+                    onChange={() => setFinalizeData({ ...finalizeData, bulkSale: false })}
+                    className="mt-0.5 text-indigo-500 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <p className="font-medium text-white">Individual Sales</p>
+                    <p className="text-xs text-slate-400">Cards remain allocated for individual processing</p>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    name="saleType"
+                    checked={finalizeData.bulkSale}
+                    onChange={() => setFinalizeData({ ...finalizeData, bulkSale: true })}
+                    className="mt-0.5 text-indigo-500 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <p className="font-medium text-white">Bulk Sale</p>
+                    <p className="text-xs text-slate-400">All cards automatically marked as sold and ready to ship</p>
+                  </div>
+                </label>
+              </div>
+            </div>
           </div>
 
-          {/* Calculation Preview */}
-          <div className="bg-slate-700 rounded-lg p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Gross Sales:</span>
-              <span className="text-white">${finalizeData.grossSales}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Platform Fees:</span>
-              <span className="text-white">-${finalizeData.fees}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Total Cost:</span>
-              <span className="text-white">-${currentStream.totalCost}</span>
-            </div>
-            <hr className="border-slate-600" />
-            <div className="flex justify-between font-medium">
-              <span className="text-slate-300">Profit:</span>
-              <span className={getProfitColor(calculatedProfit)}>
-                ${calculatedProfit.toFixed(2)}
-              </span>
+          {/* Real-time Calculation Preview */}
+          <div className="bg-slate-700 rounded-lg p-4">
+            <h4 className="font-medium text-white mb-3">Financial Summary</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Gross Sales:</span>
+                <span className="text-green-400 font-medium">
+                  ${(finalizeData.grossSales || 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Total Cost:</span>
+                <span className="text-red-400 font-medium">
+                  -${currentStream.totalCost.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Platform Fees:</span>
+                <span className="text-red-400 font-medium">
+                  -${(finalizeData.fees || 0).toFixed(2)}
+                </span>
+              </div>
+              <hr className="border-slate-600 my-2" />
+              <div className="flex justify-between items-center">
+                <span className="text-slate-300 font-medium">Net Profit:</span>
+                <span className={`font-bold text-lg ${getProfitColor(calculatedProfit)}`}>
+                  ${calculatedProfit.toFixed(2)}
+                </span>
+              </div>
+              {finalizeData.grossSales > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Profit Margin:</span>
+                  <span className={`font-medium ${getProfitColor(calculatedProfit)}`}>
+                    {((calculatedProfit / finalizeData.grossSales) * 100).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          {/* Warnings */}
+          {calculatedProfit < 0 && (
+            <div className="flex items-start gap-3 p-4 bg-red-600/10 border border-red-600/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-red-400 mb-1">Loss Warning</h4>
+                <p className="text-sm text-red-300">
+                  This stream will result in a loss of ${Math.abs(calculatedProfit).toFixed(2)}. 
+                  Please verify the sales data before finalizing.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {finalizeData.bulkSale && (
+            <div className="flex items-start gap-3 p-4 bg-amber-600/10 border border-amber-600/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-amber-400 mb-1">Bulk Sale Selected</h4>
+                <p className="text-sm text-amber-300">
+                  All {currentStream.totalItems} cards will be automatically marked as "Sold" and moved to the shipping queue.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Validation Error */}
+          {finalizeData.grossSales <= 0 && (
+            <div className="flex items-start gap-3 p-4 bg-red-600/10 border border-red-600/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-red-400 mb-1">Invalid Gross Sales</h4>
+                <p className="text-sm text-red-300">
+                  Gross sales must be greater than $0.00 to finalize the stream.
+                </p>
+              </div>
+            </div>
+          </div>
+
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
             <Button variant="secondary" onClick={() => setShowFinalizeModal(false)} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleFinalize} className="flex-1">
+            <Button 
+              onClick={handleFinalize} 
+              disabled={!finalizeData.grossSales || finalizeData.grossSales <= 0}
+              className="flex-1"
+            >
+              <Calculator className="w-4 h-4" />
               Finalize Stream
             </Button>
           </div>
