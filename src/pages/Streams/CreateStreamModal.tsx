@@ -32,12 +32,12 @@ export function CreateStreamModal({ isOpen, onClose }: CreateStreamModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Stream">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Stream Name</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Stream Title</label>
           <input
             type="text"
             required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white"
             placeholder="e.g., February 2024 Live Break"
           />
@@ -55,7 +55,7 @@ export function CreateStreamModal({ isOpen, onClose }: CreateStreamModalProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Target Value</label>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Target Value ($)</label>
           <input
             type="number"
             step="0.01"

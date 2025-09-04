@@ -163,7 +163,10 @@ export interface ApiResponse<T> {
 export interface Stream {
   id: string;
   title: string;
+  description?: string;
+  targetValue?: number;
   streamer: string;
+  streamerUserId?: string;
   date: Date;
   status: StreamStatus;
   totalItems: number;
@@ -171,7 +174,16 @@ export interface Stream {
   grossSales?: number;
   fees?: number;
   profit?: number;
-  cards: Card[];
+  bulkSale?: boolean;
+  items?: Array<{
+    cardId: string;
+    addedAt: Date;
+    value: number;
+  }>;
+  lockedAt?: Date;
+  lockedBy?: any;
+  finalizedAt?: Date;
+  finalizedBy?: any;
   createdAt: Date;
   updatedAt: Date;
 }
