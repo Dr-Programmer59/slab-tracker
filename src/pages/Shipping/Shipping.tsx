@@ -8,14 +8,11 @@ import { AddTrackingModal } from './AddTrackingModal';
 import toast from 'react-hot-toast';
 
 export function Shipping() {
-  const { cards, updateCardStatus, initializeCards } = useInventoryStore();
+  const { cards, updateCardStatus } = useInventoryStore();
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
-  // Ensure cards are loaded for shipping functionality
-  React.useEffect(() => {
-    initializeCards();
-  }, [initializeCards]);
+  // Cards are now loaded globally in AppLayout
 
   const shippingItems = {
     toShip: cards.filter(c => c.status === 'ToShip'),

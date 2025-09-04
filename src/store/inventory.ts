@@ -77,13 +77,9 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   selectedCard: null,
   isDetailDrawerOpen: false,
 
-  // Initialize cards data on store creation
+  // Always initialize cards data - force refresh on app load
   initializeCards: async () => {
-    const { cards } = get();
-    // Only fetch if we don't have cards data yet
-    if (cards.length === 0) {
-      await get().fetchCards();
-    }
+    await get().fetchCards();
   },
 
   setFilters: (newFilters) => {

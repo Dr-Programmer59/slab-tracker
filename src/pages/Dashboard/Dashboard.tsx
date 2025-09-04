@@ -21,15 +21,11 @@ import toast from 'react-hot-toast';
 
 export function Dashboard() {
   const { user } = useAuthStore();
-  const { cards, initializeCards } = useInventoryStore();
+  const { cards, loading: cardsLoading } = useInventoryStore();
   const { streams } = useStreamsStore();
 
-  // Fetch data on component mount
-  React.useEffect(() => {
-    console.log('📊 Loading dashboard data...');
-    // Ensure cards are loaded for dashboard calculations
-    initializeCards();
-  }, []);
+  // Cards are now loaded globally in AppLayout, no need to load here
+  console.log('📊 Dashboard loaded with', cards.length, 'cards');
 
   const kpis = {
     inventoryValue: cards
@@ -60,6 +56,18 @@ export function Dashboard() {
       transition: { duration: 0.5, ease: 'easeOut' },
     },
   };
+
+  // Show loading state if cards are still loading
+  if (cardsLoading && cards.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

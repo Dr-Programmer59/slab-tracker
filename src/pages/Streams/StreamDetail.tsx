@@ -32,7 +32,7 @@ export function StreamDetail() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { hasPermission, canAccessOwnResource } = usePermissions();
-  const { cards, initializeCards } = useInventoryStore();
+  const { cards } = useInventoryStore();
   const { 
     currentStream, 
     streamItems, 
@@ -62,8 +62,7 @@ export function StreamDetail() {
     if (id) {
       fetchStreamDetails(id);
       fetchStreamItems(id);
-      // Ensure cards are loaded for builder functionality
-      initializeCards();
+      // Cards are now loaded globally in AppLayout
     }
   }, [id, fetchStreamDetails, fetchStreamItems, initializeCards]);
 
@@ -128,8 +127,6 @@ export function StreamDetail() {
       // Refresh both stream details and items to get updated data
       fetchStreamDetails(id);
       fetchStreamItems(id);
-      // Also refresh cards to update their status
-      initializeCards();
     } else {
       // Remove from recently added if failed
       setRecentlyAdded(prev => prev.filter(item => item !== scannedValue.trim()));

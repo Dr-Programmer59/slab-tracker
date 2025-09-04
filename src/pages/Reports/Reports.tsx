@@ -8,17 +8,14 @@ import { useStreamsStore } from '../../store/streams';
 import toast from 'react-hot-toast';
 
 export function Reports() {
-  const { cards, initializeCards } = useInventoryStore();
+  const { cards } = useInventoryStore();
   const { streams } = useStreamsStore();
   const [dateRange, setDateRange] = useState({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0],
   });
 
-  // Ensure cards are loaded for reports calculations
-  React.useEffect(() => {
-    initializeCards();
-  }, [initializeCards]);
+  // Cards are now loaded globally in AppLayout
 
   const kpis = {
     totalRevenue: cards.filter(c => c.status === 'Sold').reduce((sum, card) => sum + (card.currentValue || card.purchasePrice), 0),

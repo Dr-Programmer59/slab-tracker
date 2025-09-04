@@ -9,10 +9,21 @@ import { useInventoryStore } from '../../store/inventory';
 export function AppLayout() {
   const { user } = useAuthStore();
   const { initializeCards } = useInventoryStore();
+  const [cardsLoaded, setCardsLoaded] = React.useState(false);
 
-  // Initialize cards data when app layout mounts
+  // Always initialize cards data when app layout mounts (including refresh)
   React.useEffect(() => {
-    initializeCards();
+    const loadCards = async () => {
+      try {
+        await initializeCards();
+        setCardsLoaded(true);
+      } catch (error) {
+        console.error('Failed to load cards:', error);
+        setCardsLoaded(true); // Still set to true to prevent infinite loading
+      }
+    };
+    
+    loadCards();
   }, [initializeCards]);
 
   return (
