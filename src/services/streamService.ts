@@ -88,7 +88,7 @@ export const streamService = {
       
       console.log(response,"stream details response")
       // Check API response format: { success: true, data: { stream } }
-      if (!response.data.ok) {
+      if (!response.data.success) {
         throw new Error(response.data.error?.message || 'Stream not found');
       }
       

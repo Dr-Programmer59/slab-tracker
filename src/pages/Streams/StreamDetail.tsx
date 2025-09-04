@@ -283,6 +283,37 @@ export function StreamDetail() {
               </div>
             </div>
 
+            {/* Additional Financial Details for Finalized Streams */}
+            {currentStream.status === 'Finalized' && (
+              <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Financial Summary</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <p className="text-sm text-slate-400 mb-1">Revenue</p>
+                    <p className="text-xl font-bold text-green-400">
+                      ${currentStream.grossSales?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-slate-400 mb-1">Fees</p>
+                    <p className="text-xl font-bold text-red-400">
+                      -${currentStream.fees?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-slate-400 mb-1">Net Profit</p>
+                    <p className={`text-xl font-bold ${getProfitColor(currentStream.profit || 0)}`}>
+                      ${currentStream.profit?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
+                </div>
+                {currentStream.bulkSale && (
+                  <div className="mt-4 p-3 bg-amber-600/10 border border-amber-600/20 rounded-lg">
+                    <p className="text-amber-400 text-sm font-medium">📦 Bulk Sale</p>
+                  </div>
+                )}
+              </div>
+            )}
             {/* Items Table */}
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
@@ -314,16 +345,17 @@ export function StreamDetail() {
                   <table className="w-full">
                     <thead className="bg-slate-700">
                       <tr>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Card ID</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Card</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Title</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Purchase Price</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Added</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Value</th>
                         {currentStream.status === 'Draft' && canEdit && (
                           <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Actions</th>
                         )}
                       </tr>
                     </thead>
                     <tbody>
-                      {streamItems.map((item, index) => (
+                      {(currentStream.items || []).map((item, index) => (
                         <motion.tr
                           key={item.cardId}
                           initial={{ opacity: 0, y: 10 }}
@@ -332,7 +364,7 @@ export function StreamDetail() {
                           className="border-b border-slate-700"
                         >
                           <td className="py-3 px-4">
-                            <span className="text-white font-mono">{item.cardId}</span>
+                            <span className="text-white font-mono">{item.displayId}</span>
                             {recentlyAdded.includes(item.cardId) && (
                               <span className="ml-2 text-xs bg-green-600 text-white px-2 py-1 rounded-full">
                                 Recently added
@@ -340,12 +372,15 @@ export function StreamDetail() {
                             )}
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-slate-300 text-sm">
-                              {new Date(item.addedAt).toLocaleString()}
-                            </span>
+                            <span className="text-white">{item.title}</span>
                           </td>
                           <td className="py-3 px-4">
                             <span className="text-white font-medium">${item.purchasePrice}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-slate-300 text-sm">
+                              {new Date(item.addedAt).toLocaleString()}
+                            </span>
                           </td>
                           {currentStream.status === 'Draft' && canEdit && (
                             <td className="py-3 px-4">

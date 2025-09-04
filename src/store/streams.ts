@@ -96,7 +96,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
           date: new Date(apiStream.date),
           status: mapApiStatus(apiStream.status),
           totalItems: apiStream.totalItems || 0,
-          totalCost: apiStream.totalValue || 0,
+          totalCost: apiStream.totalCost || 0,
           grossSales: apiStream.grossSales,
           fees: apiStream.fees,
           profit: apiStream.profit,
