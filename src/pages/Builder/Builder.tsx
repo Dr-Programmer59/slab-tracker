@@ -6,7 +6,7 @@ import { useInventoryStore } from '../../store/inventory';
 import toast from 'react-hot-toast';
 
 export function Builder() {
-  const { cards, updateCard } = useInventoryStore();
+  const { cards, updateCardStatus } = useInventoryStore();
   const [sessionItems, setSessionItems] = useState<any[]>([]);
   const [lastScan, setLastScan] = useState<string>('');
   const [sessionActive, setSessionActive] = useState(false);
@@ -37,7 +37,7 @@ export function Builder() {
 
     // Add to session
     setSessionItems(prev => [...prev, card]);
-    updateCard(card.id, { status: 'AllocatedToStream' });
+    updateCardStatus(card.id,  'AllocatedToStream' );
     setLastScan(card.displayId);
     
     // Success feedback
