@@ -345,7 +345,7 @@ export function StreamDetail() {
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-white font-medium">${item.value}</span>
+                            <span className="text-white font-medium">${item.purchasePrice}</span>
                           </td>
                           {currentStream.status === 'Draft' && canEdit && (
                             <td className="py-3 px-4">
