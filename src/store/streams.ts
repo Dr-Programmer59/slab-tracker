@@ -184,8 +184,8 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
             return {
               currentStream: {
                 ...state.currentStream,
-                totalItems: stream.totalItems,
-                totalCost: stream.totalValue,
+                totalItems: stream.totalItems || state.currentStream.totalItems + 1,
+                totalCost: stream.totalCost || state.currentStream.totalCost + (item.purchasePrice || 0),
                 items: [...(state.currentStream.items || []), item]
               }
             };
@@ -197,7 +197,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
         set((state) => ({
           streams: state.streams.map(s => 
             s.id === streamId 
-              ? { ...s, totalItems: stream.totalItems, totalCost: stream.totalValue }
+              ? { ...s, totalItems: stream.totalItems || s.totalItems + 1, totalCost: stream.totalCost || s.totalCost }
               : s
           )
         }));

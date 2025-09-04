@@ -105,8 +105,11 @@ export function StreamDetail() {
       setLastScan(scannedValue.trim());
       setScanInput('');
       
-      // Refresh stream items to get updated list
-      fetchStreamItems(id);
+      // Refresh both stream details and items to get updated data
+      await Promise.all([
+        fetchStreamDetails(id),
+        fetchStreamItems(id)
+      ]);
     }
   };
 
@@ -429,7 +432,11 @@ export function StreamDetail() {
               /* Active Builder */
               <div className="max-w-2xl mx-auto space-y-6">
                 {/* Scan Area */}
-                <div className="bg-slate-800 border-2 border-dashed border-indigo-500 rounded-xl p-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-slate-800 border-2 border-dashed border-indigo-500 rounded-xl p-8"
+                >
                   <div className="text-center">
                     <QrCode className="w-16 h-16 text-indigo-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-white mb-2">Scan Cards</h3>
@@ -452,7 +459,7 @@ export function StreamDetail() {
                       autoFocus
                     />
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Last Scan Feedback */}
                 {lastScan && (
@@ -466,7 +473,10 @@ export function StreamDetail() {
                 )}
 
                 {/* Live Totals */}
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-slate-800 border border-slate-700 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-semibold text-white">Building Session</h3>
                     <div className="flex items-center gap-4">
@@ -506,7 +516,7 @@ export function StreamDetail() {
                       </div>
                     </div>
                   )}
-                </div>
+                </motion.div>
               </div>
             )}
           </motion.div>
