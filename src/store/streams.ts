@@ -83,7 +83,7 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const result = await streamService.getStreamDetails(id);
-      
+      console.log(result,"in store ")
       if (result.success && result.data) {
         const apiStream = result.data;
         const stream = {
@@ -124,9 +124,10 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
     set({ itemsLoading: true });
     try {
       const result = await streamService.getStreamItems(id);
+      console.log(result,"in stream add card")
       
-      if (result.success && result.data) {
-        set({ streamItems: result.data.data || [], itemsLoading: false });
+      if (result.data) {
+        set({ streamItems: result.data.data.items || [], itemsLoading: false });
       } else {
         set({ itemsLoading: false });
         toast.error(result.error || 'Failed to fetch stream items');
@@ -174,7 +175,6 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
   addCardToStream: async (streamId: string, displayId: string): Promise<boolean> => {
     try {
       const result = await streamService.addCardToStream(streamId, displayId);
-      
       if (result.success && result.data) {
         const { item, stream, message } = result.data;
         
