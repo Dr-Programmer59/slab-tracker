@@ -1,147 +1,210 @@
-import api from '../utils/api';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Truck, Package, Scan, FileText } from 'lucide-react';
+import { useInventoryStore } from '../../store/inventory';
+import { Button } from '../../components/Common/Button';
+import { StatusChip } from '../../components/Common/StatusChip';
+import { AddTrackingModal } from './AddTrackingModal';
+import toast from 'react-hot-toast';
 
-interface ShipmentFilters {
-  status?: string;
-  page?: number;
-  limit?: number;
+export function Shipping() {
+  const { cards, updateCardStatus } = useInventoryStore();
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  const shippingItems = {
+    toShip: cards.filter(c => c.status === 'ToShip'),
+    packed: cards.filter(c => c.status === 'Packed'),
+    shipped: cards.filter(c => c.status === 'Shipped'),
+  };
+
+  const markPacked = (cardId: string) => {
+    updateCardStatus(cardId, 'Packed');
+    toast.success('Item marked as packed!');
+  };
+
+  const markShipped = (card: any) => {
+    setSelectedItem(card);
+    setShowTrackingModal(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-2xl font-bold text-white">Shipping</h1>
+          <p className="text-slate-400 mt-1">
+            Process sold items through packing and shipping
+          </p>
+        </div>
+        <Button variant="secondary">
+          <FileText className="w-4 h-4" />
+          Export Queue
+        </Button>
+      </motion.div>
+
+      {/* Shipping Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* To Ship */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-slate-800 border border-slate-700 rounded-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center">
+              <Package className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-white">To Ship</h3>
+              <p className="text-sm text-slate-400">{shippingItems.toShip.length} items</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {shippingItems.toShip.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-white text-sm">{item.title}</p>
+                  <StatusChip status={item.status} animate={false} />
+                </div>
+                <p className="text-slate-400 text-xs mb-3">{item.player} • {item.displayId}</p>
+                <Button
+                  size="sm"
+                  onClick={() => markPacked(item.id)}
+                  className="w-full"
+                >
+                  <Scan className="w-4 h-4" />
+                  Pack Item
+                </Button>
+              </motion.div>
+            ))}
+            
+            {shippingItems.toShip.length === 0 && (
+              <div className="text-center py-8">
+                <Package className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-slate-500 text-sm">No items to ship</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Packed */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-slate-800 border border-slate-700 rounded-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+              <Package className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-white">Packed</h3>
+              <p className="text-sm text-slate-400">{shippingItems.packed.length} items</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {shippingItems.packed.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-white text-sm">{item.title}</p>
+                  <StatusChip status={item.status} animate={false} />
+                </div>
+                <p className="text-slate-400 text-xs mb-3">{item.player} • {item.displayId}</p>
+                <Button
+                  size="sm"
+                  onClick={() => markShipped(item)}
+                  className="w-full"
+                >
+                  <Truck className="w-4 h-4" />
+                  Add Tracking
+                </Button>
+              </motion.div>
+            ))}
+            
+            {shippingItems.packed.length === 0 && (
+              <div className="text-center py-8">
+                <Package className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-slate-500 text-sm">No packed items</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Shipped */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-slate-800 border border-slate-700 rounded-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+              <Truck className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-white">Shipped</h3>
+              <p className="text-sm text-slate-400">{shippingItems.shipped.length} items</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {shippingItems.shipped.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-4 bg-slate-700 rounded-lg"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-white text-sm">{item.title}</p>
+                  <StatusChip status={item.status} animate={false} />
+                </div>
+                <p className="text-slate-400 text-xs">{item.player} • {item.displayId}</p>
+              </motion.div>
+            ))}
+            
+            {shippingItems.shipped.length === 0 && (
+              <div className="text-center py-8">
+                <Truck className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-slate-500 text-sm">No shipped items</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Add Tracking Modal */}
+      <AddTrackingModal
+        isOpen={showTrackingModal}
+        onClose={() => {
+          setShowTrackingModal(false);
+          setSelectedItem(null);
+        }}
+        item={selectedItem}
+      />
+    </div>
+  );
 }
-
-interface ShipmentData {
-  buyerName: string;
-  buyerEmail: string;
-  shippingAddress: any;
-  cardIds: string[];
-  shippingMethod?: string;
-}
-
-interface TrackingData {
-  trackingNumber: string;
-  carrier: string;
-  shippedDate?: string;
-  estimatedDelivery?: string;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
-export const shippingService = {
-  // GET ALL SHIPMENTS - Updated to match exact API response format
-  async getShipments(filters: ShipmentFilters = {}): Promise<ApiResponse<any>> {
-    try {
-      const params = new URLSearchParams();
-      if (filters.status) params.append('status', filters.status);
-      if (filters.page) params.append('page', filters.page.toString());
-      if (filters.limit) params.append('limit', filters.limit.toString());
-      
-      const response = await api.get(`/shipments?${params}`);
-      
-      // Check API response format: { ok: true, data: { shipments, pagination } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to fetch shipments');
-      }
-      
-      return { success: true, data: response.data.data };
-    } catch (error: any) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to fetch shipments'
-      };
-    }
-  },
-
-  // CREATE MANUAL SHIPMENT
-  async createShipment(shipmentData: ShipmentData): Promise<ApiResponse<any>> {
-    try {
-      const response = await api.post('/shipments', {
-        buyerName: shipmentData.buyerName,
-        buyerEmail: shipmentData.buyerEmail,
-        shippingAddress: shipmentData.shippingAddress,
-        cardIds: shipmentData.cardIds,
-        shippingMethod: shipmentData.shippingMethod || 'Standard'
-      });
-      
-      // Check API response format: { ok: true, data: { shipment, message } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to create shipment');
-      }
-      
-      return { success: true, data: response.data.data };
-    } catch (error: any) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to create shipment'
-      };
-    }
-  },
-
-  // MARK SHIPMENT AS SHIPPED
-  async markAsShipped(shipmentId: string, trackingData: TrackingData): Promise<ApiResponse<any>> {
-    try {
-      const response = await api.post(`/shipments/${shipmentId}/ship`, {
-        trackingNumber: trackingData.trackingNumber,
-        carrier: trackingData.carrier,
-        shippedDate: trackingData.shippedDate,
-        estimatedDelivery: trackingData.estimatedDelivery
-      });
-      
-      // Check API response format: { ok: true, data: { shipment, message } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Failed to mark as shipped');
-      }
-      
-      return { success: true, data: response.data.data };
-    } catch (error: any) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Failed to mark as shipped'
-      };
-    }
-  },
-
-  // GET SHIPMENT DETAILS
-  async getShipmentDetails(shipmentId: string): Promise<ApiResponse<any>> {
-    try {
-      const response = await api.get(`/shipments/${shipmentId}`);
-      
-      // Check API response format: { ok: true, data: { shipment } }
-      if (!response.data.ok) {
-        throw new Error(response.data.error?.message || 'Shipment not found');
-      }
-      
-      return { success: true, data: response.data.data };
-    } catch (error: any) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Shipment not found'
-      };
-    }
-  },
-
-  // DOWNLOAD SHIPPING LABEL
-  async downloadLabel(shipmentId: string): Promise<ApiResponse<any>> {
-    try {
-      const response = await api.get(`/shipments/${shipmentId}/label`, {
-        responseType: 'blob'
-      });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `shipment-${shipmentId}-label.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      
-      return { success: true };
-    } catch (error: any) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error?.message || 'Failed to download label'
-      };
-    }
-  }
-};
