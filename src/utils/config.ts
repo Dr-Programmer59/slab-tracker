@@ -12,6 +12,7 @@ export const config = {
   
   // Helper to get label URL
   getLabelUrl: (displayId: string) => {
-    return config.getBackendUrl(`/storage/labels/${displayId}.pdf`);
+    const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+    return `${baseUrl.replace(/\/$/, '')}/storage/labels/${displayId}.pdf`;
   }
 };
