@@ -18,6 +18,7 @@ interface InventoryState {
   filters: FilterState;
   selectedCard: Card | null;
   isDetailDrawerOpen: boolean;
+  initializeCards: () => Promise<void>;
   setFilters: (filters: Partial<FilterState>) => void;
   fetchCards: () => Promise<void>;
   updateCardStatus: (id: string, status: string, metadata?: any) => Promise<void>;
@@ -75,6 +76,15 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   filters: { search: '' },
   selectedCard: null,
   isDetailDrawerOpen: false,
+
+  // Initialize cards data on store creation
+  initializeCards: async () => {
+    const { cards } = get();
+    // Only fetch if we don't have cards data yet
+    if (cards.length === 0) {
+      await get().fetchCards();
+    }
+  },
 
   setFilters: (newFilters) => {
     set((state) => ({

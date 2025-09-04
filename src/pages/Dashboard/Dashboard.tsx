@@ -21,13 +21,14 @@ import toast from 'react-hot-toast';
 
 export function Dashboard() {
   const { user } = useAuthStore();
-  const { cards } = useInventoryStore();
+  const { cards, initializeCards } = useInventoryStore();
   const { streams } = useStreamsStore();
 
   // Fetch data on component mount
   React.useEffect(() => {
     console.log('📊 Loading dashboard data...');
-    // Note: Individual stores will fetch their data when components mount
+    // Ensure cards are loaded for dashboard calculations
+    initializeCards();
   }, []);
 
   const kpis = {

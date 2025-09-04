@@ -6,12 +6,17 @@ import { useInventoryStore } from '../../store/inventory';
 import toast from 'react-hot-toast';
 
 export function Builder() {
-  const { cards, updateCardStatus } = useInventoryStore();
+  const { cards, updateCardStatus, initializeCards } = useInventoryStore();
   const [sessionItems, setSessionItems] = useState<any[]>([]);
   const [lastScan, setLastScan] = useState<string>('');
   const [sessionActive, setSessionActive] = useState(false);
   const [scanInput, setScanInput] = useState('');
   const scanInputRef = useRef<HTMLInputElement>(null);
+
+  // Ensure cards are loaded for builder functionality
+  React.useEffect(() => {
+    initializeCards();
+  }, [initializeCards]);
 
   // Keep input focused for barcode scanner
   useEffect(() => {

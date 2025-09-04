@@ -1,12 +1,20 @@
 import React from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { TopBar } from './TopBar';
 import { SideNav } from './SideNav';
 import { useAuthStore } from '../../store/auth';
+import { useInventoryStore } from '../../store/inventory';
 
 export function AppLayout() {
   const { user } = useAuthStore();
+  const { initializeCards } = useInventoryStore();
+
+  // Initialize cards data when app layout mounts
+  React.useEffect(() => {
+    initializeCards();
+  }, [initializeCards]);
 
   return (
     <div className="min-h-screen bg-slate-900">

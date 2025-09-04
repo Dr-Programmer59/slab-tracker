@@ -18,6 +18,7 @@ import {
 import { useStreamsStore } from '../../store/streams';
 import { useAuthStore } from '../../store/auth';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useInventoryStore } from '../../store/inventory';
 import { Button } from '../../components/Common/Button';
 import { Modal } from '../../components/Common/Modal';
 import { StatusChip } from '../../components/Common/StatusChip';
@@ -31,6 +32,7 @@ export function StreamDetail() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { hasPermission, canAccessOwnResource } = usePermissions();
+  const { cards, initializeCards } = useInventoryStore();
   const { 
     currentStream, 
     streamItems, 
@@ -60,8 +62,10 @@ export function StreamDetail() {
     if (id) {
       fetchStreamDetails(id);
       fetchStreamItems(id);
+      // Ensure cards are loaded for builder functionality
+      initializeCards();
     }
-  }, [id, fetchStreamDetails, fetchStreamItems]);
+  }, [id, fetchStreamDetails, fetchStreamItems, initializeCards]);
 
   // Keep input focused for barcode scanner when builder is active
   useEffect(() => {
@@ -98,6 +102,21 @@ export function StreamDetail() {
   const handleScan = async (scannedValue: string) => {
     if (!scannedValue.trim() || !id) return;
 
+    // Find the card in our inventory to validate
+    const card = cards.find(c => c.displayId === scannedValue.trim() || c.id === scannedValue.trim());
+    
+    if (!card) {
+      toast.error('Card not found in inventory');
+      setScanInput('');
+      return;
+    }
+
+    if (card.status !== 'Available') {
+      toast.error(`Card is not available (current status: ${card.status})`);
+      setScanInput('');
+      return;
+    }
+
     // Optimistic UI update - add to recently added immediately
     setRecentlyAdded(prev => [scannedValue.trim(), ...prev.slice(0, 4)]);
     setLastScan(scannedValue.trim());
@@ -109,6 +128,8 @@ export function StreamDetail() {
       // Refresh both stream details and items to get updated data
       fetchStreamDetails(id);
       fetchStreamItems(id);
+      // Also refresh cards to update their status
+      initializeCards();
     } else {
       // Remove from recently added if failed
       setRecentlyAdded(prev => prev.filter(item => item !== scannedValue.trim()));
