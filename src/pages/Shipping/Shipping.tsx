@@ -8,7 +8,7 @@ import { AddTrackingModal } from './AddTrackingModal';
 import toast from 'react-hot-toast';
 
 export function Shipping() {
-  const { cards, updateCard } = useInventoryStore();
+  const { cards, updateCardStatus } = useInventoryStore();
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
@@ -19,7 +19,7 @@ export function Shipping() {
   };
 
   const markPacked = (cardId: string) => {
-    updateCard(cardId, { status: 'Packed' });
+    updateCardStatus(cardId, 'Packed');
     toast.success('Item marked as packed!');
   };
 
