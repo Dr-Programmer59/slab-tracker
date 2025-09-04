@@ -179,19 +179,17 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
         const { item, stream, message } = result.data;
         
         // Update current stream if it's the same one
-        set((state) => {
-          if (state.currentStream?.id === streamId) {
-            return {
-              currentStream: {
-                ...state.currentStream,
-                totalItems: stream.totalItems || state.currentStream.totalItems + 1,
-                totalCost: stream.totalCost || state.currentStream.totalCost + (item.purchasePrice || 0),
-                items: [...(state.currentStream.items || []), item]
-              }
-            };
-          }
-          return state;
-        });
+        const { currentStream } = get();
+        if (currentStream?.id === streamId) {
+          set({
+            currentStream: {
+              ...currentStream,
+              totalItems: stream.totalItems || currentStream.totalItems + 1,
+              totalCost: stream.totalCost || currentStream.totalCost + (item.purchasePrice || 0),
+              items: [...(currentStream.items || []), item]
+            }
+          });
+        }
         
         // Update streams list
         set((state) => ({

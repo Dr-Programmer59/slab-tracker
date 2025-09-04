@@ -98,18 +98,20 @@ export function StreamDetail() {
   const handleScan = async (scannedValue: string) => {
     if (!scannedValue.trim() || !id) return;
 
+    // Optimistic UI update - add to recently added immediately
+    setRecentlyAdded(prev => [scannedValue.trim(), ...prev.slice(0, 4)]);
+    setLastScan(scannedValue.trim());
+    setScanInput('');
+
     const success = await addCardToStream(id, scannedValue.trim());
     
     if (success) {
-      setRecentlyAdded(prev => [scannedValue.trim(), ...prev.slice(0, 4)]);
-      setLastScan(scannedValue.trim());
-      setScanInput('');
-      
       // Refresh both stream details and items to get updated data
-      await Promise.all([
-        fetchStreamDetails(id),
-        fetchStreamItems(id)
-      ]);
+      fetchStreamDetails(id);
+      fetchStreamItems(id);
+    } else {
+      // Remove from recently added if failed
+      setRecentlyAdded(prev => prev.filter(item => item !== scannedValue.trim()));
     }
   };
 
