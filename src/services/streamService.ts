@@ -1,268 +1,204 @@
-import { create } from 'zustand';
-import { cardService } from '../services/cardService';
-import { handleApiError } from '../utils/errorHandler';
-import { config } from '../utils/config';
-import toast from 'react-hot-toast';
-import type { Card, FilterState, CardStatus } from '../types';
+import api from '../utils/api';
 
-interface InventoryState {
-  cards: Card[];
-  loading: boolean;
-  error: string | null;
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
-  filters: FilterState;
-  selectedCard: Card | null;
-  isDetailDrawerOpen: boolean;
-  setFilters: (filters: Partial<FilterState>) => void;
-  fetchCards: () => Promise<void>;
-  updateCardStatus: (id: string, status: string, metadata?: any) => Promise<void>;
-  updateCard: (id: string, updates: Partial<Card>) => Promise<void>;
-  addCard: (cardData: Partial<Card>) => void;
-  deleteCard: (id: string) => void;
-  generateLabel: (id: string) => void;
-  selectCard: (card: Card | null) => void;
-  setDetailDrawerOpen: (open: boolean) => void;
+interface StreamFilters {
+  status?: string;
+  streamerUserId?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
 }
 
-const mapApiStatus = (apiStatus: string): CardStatus => {
-  const statusMap: Record<string, CardStatus> = {
-    'pending': 'Staged',
-    'received': 'Arrived',
-    'graded': 'Available',
-    'inventory': 'Available',
-    'Available': 'Available',
-    'reserved': 'AllocatedToStream',
-    'AllocatedToStream': 'AllocatedToStream',
-    'sold': 'Sold',
-    'Sold': 'Sold',
-    'ToShip': 'ToShip',
-    'Packed': 'Packed',
-    'shipped': 'Shipped',
-    'Shipped': 'Shipped'
-  };
-  return statusMap[apiStatus] || 'Staged';
-};
+interface StreamData {
+  name: string;
+  description?: string;
+  targetValue?: number;
+  date?: string;
+}
 
-const mapFrontendStatus = (frontendStatus: CardStatus): string => {
-  const statusMap: Record<CardStatus, string> = {
-    'Staged': 'pending',
-    'Arrived': 'received',
-    'Available': 'Available',
-    'AllocatedToStream': 'AllocatedToStream',
-    'Sold': 'Sold',
-    'ToShip': 'ToShip',
-    'Packed': 'Packed',
-    'Shipped': 'Shipped'
-  };
-  return statusMap[frontendStatus] || 'pending';
-};
+interface PnLData {
+  grossSales: number;
+  fees?: number;
+  bulkSale?: boolean;
+}
 
-export const useInventoryStore = create<InventoryState>((set, get) => ({
-  cards: [],
-  loading: false,
-  error: null,
-  pagination: {
-    page: 1,
-    limit: 25,
-    total: 0,
-    pages: 0
-  },
-  filters: { search: '' },
-  selectedCard: null,
-  isDetailDrawerOpen: false,
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
 
-  setFilters: (newFilters) => {
-    set((state) => ({
-      filters: { ...state.filters, ...newFilters },
-      pagination: { ...state.pagination, page: 1 }
-    }));
-    get().fetchCards();
-  },
-
-  fetchCards: async () => {
-    set({ loading: true, error: null });
+export const streamService = {
+  // GET ALL STREAMS - Updated to match exact API response format
+  async getStreams(filters: StreamFilters = {}): Promise<ApiResponse<any>> {
     try {
-      const { filters, pagination } = get();
+      const params = new URLSearchParams();
+      if (filters.status) params.append('status', filters.status);
+      if (filters.streamerUserId) params.append('streamerUserId', filters.streamerUserId);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+      if (filters.page) params.append('page', filters.page.toString());
+      if (filters.limit) params.append('limit', filters.limit.toString());
       
-      const apiFilters: any = {
-        page: pagination.page,
-        limit: pagination.limit
+      const response = await api.get(`/streams?${params}`);
+      
+      
+      // Check API response format: { success: true, data: [...], pagination: {...} }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to fetch streams');
+      }
+      
+      return { success: true, data: response.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to fetch streams'
       };
-      
-      if (filters.search) apiFilters.search = filters.search;
-      if (filters.status && filters.status.length > 0) {
-        apiFilters.status = filters.status.map(mapFrontendStatus).join(',');
-      }
-      if (filters.sport && filters.sport.length > 0) {
-        apiFilters.sport = filters.sport.join(',');
-      }
-      if (filters.yearRange) {
-        apiFilters.year = filters.yearRange[0];
-      }
-      if (filters.priceRange) {
-        apiFilters.minValue = filters.priceRange[0];
-        apiFilters.maxValue = filters.priceRange[1];
-      }
-      
-      const result = await cardService.getCards(apiFilters);
-      
-      if (result.success && result.data) {
-        // Access the exact API response structure: result.data.cards and result.data.pagination
-        const apiCards = result.data.items || [];
-        const cards: Card[] = apiCards.map((apiCard: any) => ({
-          id: apiCard._id,
-          displayId: apiCard.displayId,
-          title: apiCard.title || 'Unknown Card',
-          player: apiCard.player,
-          sport: apiCard.sport,
-          year: apiCard.year,
-          grade: apiCard.gradingCompany && apiCard.grade ? `${apiCard.gradingCompany} ${apiCard.grade}` : apiCard.grade,
-          purchasePrice: apiCard.purchasePrice || 0,
-          currentValue: apiCard.currentValue,
-          status: apiCard.status,
-          createdAt: new Date(apiCard.createdAt),
-          updatedAt: new Date(apiCard.updatedAt),
-          notes: apiCard.description || '',
-          imageUrl: apiCard.imageUrl,
-        }));
-        
-        set({
-          cards,
-          pagination: result.data.pagination || pagination,
-          loading: false,
-          error: null
-        });
-      } else {
-        set({ 
-          loading: false, 
-          error: result.error || 'Failed to fetch cards'
-        });
-      }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      set({ 
-        loading: false, 
-        error: errorMessage 
+    }
+  },
+
+  // CREATE NEW STREAM
+  async createStream(streamData: StreamData): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post('/streams', {
+        name: streamData.name,
+        description: streamData.description || '',
+        targetValue: streamData.targetValue || 0,
+        date: streamData.date
       });
-    }
-  },
-
-  updateCardStatus: async (id, status, metadata = {}) => {
-    try {
-      const apiStatus = mapFrontendStatus(status as CardStatus);
-      const result = await cardService.updateCardStatus(id, apiStatus, metadata);
       
-      if (result.success && result.data) {
-        // Access the exact API response structure: result.data.card
-        const updatedCard = result.data.card;
-        set((state) => ({
-          cards: state.cards.map(card => 
-            card.id === id 
-              ? { ...card, status: mapApiStatus(updatedCard.status), updatedAt: new Date(updatedCard.updatedAt) }
-              : card
-          )
-        }));
-        toast.success(result.data.message || 'Card status updated successfully');
-      } else {
-        toast.error(result.error || 'Failed to update status');
+      // Check API response format: { success: true, data: { stream } }
+      if (!response.data.success) {
+        throw new Error(response.data.error?.message || 'Failed to create stream');
       }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast.error(errorMessage);
-    }
-  },
-
-  updateCard: async (id, updates) => {
-    try {
-      const result = await cardService.updateCard(id, updates);
       
-      if (result.success && result.data) {
-        // Access the exact API response structure: result.data.card
-        const updatedCard = result.data.card;
-        const mappedCard = {
-          id: updatedCard._id,
-          displayId: updatedCard.displayId,
-          title: updatedCard.title,
-          player: updatedCard.player,
-          sport: updatedCard.sport,
-          year: updatedCard.year,
-          grade: updatedCard.gradingCompany && updatedCard.grade ? `${updatedCard.gradingCompany} ${updatedCard.grade}` : updatedCard.grade,
-          purchasePrice: updatedCard.purchasePrice,
-          currentValue: updatedCard.currentValue,
-          status: mapApiStatus(updatedCard.status),
-          createdAt: new Date(updatedCard.createdAt),
-          updatedAt: new Date(updatedCard.updatedAt),
-          notes: updatedCard.description || '',
-          imageUrl: updatedCard.imageUrl,
-        };
-        
-        set((state) => ({
-          cards: state.cards.map(card => 
-            card.id === id ? mappedCard : card
-          )
-        }));
-        toast.success(result.data.message || 'Card updated successfully');
-      } else {
-        toast.error(result.error || 'Failed to update card');
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to create stream'
+      };
+    }
+  },
+
+  // GET STREAM DETAILS
+  async getStreamDetails(streamId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.get(`/streams/${streamId}`);
+      
+      console.log(response,"stream details response")
+      // Check API response format: { success: true, data: { stream } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Stream not found');
       }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast.error(errorMessage);
+      
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Stream not found'
+      };
     }
   },
 
-  addCard: (cardData) => {
-    const newCard: Card = {
-      id: Math.random().toString(36).substr(2, 9),
-      displayId: cardData.displayId || `ST-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 999999)).padStart(6, '0')}`,
-      title: cardData.title || '',
-      player: cardData.player || '',
-      sport: cardData.sport || 'Baseball',
-      year: cardData.year || new Date().getFullYear(),
-      grade: cardData.grade,
-      purchasePrice: cardData.purchasePrice || 0,
-      currentValue: cardData.currentValue,
-      status: (cardData.status as CardStatus) || 'Staged',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      notes: cardData.notes,
-      imageUrl: cardData.imageUrl,
-    };
-
-    set((state) => ({
-      cards: [newCard, ...state.cards]
-    }));
-  },
-
-  deleteCard: (id) => {
-    set((state) => ({
-      cards: state.cards.filter(card => card.id !== id)
-    }));
-  },
-
-  generateLabel: (id) => {
-    const { cards } = get();
-    const card = cards.find(c => c.id === id);
-    if (card) {
-      // Open the PDF label from backend storage
-      const labelUrl = config.getLabelUrl(card.displayId);
-      window.open(labelUrl, '_blank');
+  // GET STREAM ITEMS
+  async getStreamItems(streamId: string, page: number = 1, limit: number = 25): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.get(`/streams/${streamId}/items?page=${page}&limit=${limit}`);
+      
+      // Check API response format: { success: true, data: [...], pagination: {...} }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to fetch stream items');
+      }
+      
+      return { success: true, data: response.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to fetch stream items'
+      };
     }
   },
 
-  selectCard: (card) => {
-    set({ selectedCard: card });
-  },
-
-  setDetailDrawerOpen: (open) => {
-    set({ isDetailDrawerOpen: open });
-    if (!open) {
-      set({ selectedCard: null });
+  // ADD CARD TO STREAM - CRITICAL FUNCTIONALITY
+  async addCardToStream(streamId: string, displayId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post(`/streams/${streamId}/items`, {
+        displayId: displayId
+      });
+      
+      // Check API response format: { success: true, data: { item, stream, message } }
+      if (!response.data.ok) {
+        throw new Error(response.data.error?.message || 'Failed to add card to stream');
+      }
+      
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to add card to stream'
+      };
     }
   },
-}));
+
+  // REMOVE CARD FROM STREAM
+  async removeCardFromStream(streamId: string, cardId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.delete(`/streams/${streamId}/items/${cardId}`);
+      
+      // Check API response format: { success: true, data: { stream, message } }
+      if (!response.data.success) {
+        throw new Error(response.data.error?.message || 'Failed to remove card from stream');
+      }
+      
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to remove card from stream'
+      };
+    }
+  },
+
+  // LOCK STREAM
+  async lockStream(streamId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post(`/streams/${streamId}/lock`);
+      
+      // Check API response format: { success: true, data: { stream, message } }
+      if (!response.data.success) {
+        throw new Error(response.data.error?.message || 'Failed to lock stream');
+      }
+      
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to lock stream'
+      };
+    }
+  },
+
+  // FINALIZE STREAM - CRITICAL FOR P&L
+  async finalizeStream(streamId: string, pnlData: PnLData): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post(`/streams/${streamId}/finalize`, {
+        grossSales: pnlData.grossSales,
+        fees: pnlData.fees || 0,
+        bulkSale: pnlData.bulkSale || false
+      });
+      
+      // Check API response format: { success: true, data: { stream, message } }
+      if (!response.data.success) {
+        throw new Error(response.data.error?.message || 'Failed to finalize stream');
+      }
+      
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || error.message || 'Failed to finalize stream'
+      };
+    }
+  }
+};
