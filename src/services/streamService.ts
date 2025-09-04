@@ -42,8 +42,9 @@ export const streamService = {
       
       const response = await api.get(`/streams?${params}`);
       
+      
       // Check API response format: { success: true, data: [...], pagination: {...} }
-      if (!response.data.success) {
+      if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to fetch streams');
       }
       
