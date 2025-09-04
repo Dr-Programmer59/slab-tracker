@@ -115,7 +115,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         // Access the exact API response structure: result.data.cards and result.data.pagination
         const apiCards = result.data.items || [];
         const cards: Card[] = apiCards.map((apiCard: any) => ({
-          id: apiCard.id,
+          id: apiCard._id,
           displayId: apiCard.displayId,
           title: apiCard.title || 'Unknown Card',
           player: apiCard.player,
@@ -124,7 +124,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
           grade: apiCard.gradingCompany && apiCard.grade ? `${apiCard.gradingCompany} ${apiCard.grade}` : apiCard.grade,
           purchasePrice: apiCard.purchasePrice || 0,
           currentValue: apiCard.currentValue,
-          status: mapApiStatus(apiCard.status),
+          status: apiCard.status,
           createdAt: new Date(apiCard.createdAt),
           updatedAt: new Date(apiCard.updatedAt),
           notes: apiCard.description || '',
