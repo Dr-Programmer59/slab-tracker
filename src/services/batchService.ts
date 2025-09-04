@@ -31,9 +31,9 @@ export const batchService = {
         headers,
         timeout: 60000
       });
-      
+      console.log(response)
       // Backend uses success() wrapper: { success: true, data: { batch, validation } }
-      if (!response.data.success) {
+      if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to ingest spreadsheet');
       }
       
@@ -194,14 +194,15 @@ export const batchService = {
       const response = await api.post(`/batches/${batchId}/rows/${rowId}/arrive`, {}, {
         headers
       });
-      
+      console.log("this is response ",response)
       // Backend uses success() wrapper: { success: true, data: { card, row, message } }
-      if (!response.data.success) {
+      if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to mark row as arrived');
       }
       
       return { success: true, data: response.data.data };
     } catch (error: any) {
+      console.log("this is the error ",error)
       return { 
         success: false, 
         error: error.response?.data?.error?.message || error.message || 'Failed to mark row as arrived'
