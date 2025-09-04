@@ -1,254 +1,214 @@
 import { create } from 'zustand';
-import { streamService } from '../services/streamService';
+import { cardService } from '../services/cardService';
 import { handleApiError } from '../utils/errorHandler';
+import { config } from '../utils/config';
 import toast from 'react-hot-toast';
-import type { Stream, StreamStatus } from '../types';
+import type { Card, FilterState, CardStatus } from '../types';
 
-interface StreamsState {
-  streams: Stream[];
-  currentStream: any | null;
-  streamItems: any[];
+interface InventoryState {
+  cards: Card[];
   loading: boolean;
   error: string | null;
-  itemsLoading: boolean;
-  selectedStream: Stream | null;
-  fetchStreams: () => Promise<void>;
-  fetchStreamDetails: (id: string) => Promise<void>;
-  fetchStreamItems: (id: string) => Promise<void>;
-  createStream: (streamData: { name: string; description?: string; targetValue?: number }) => Promise<void>;
-  addCardToStream: (streamId: string, displayId: string) => Promise<boolean>;
-  removeCardFromStream: (streamId: string, cardId: string) => Promise<void>;
-  lockStream: (id: string) => Promise<void>;
-  finalizeStream: (id: string, grossSales: number, fees: number, bulkSale?: boolean) => Promise<void>;
-  selectStream: (stream: Stream | null) => void;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+  filters: FilterState;
+  selectedCard: Card | null;
+  isDetailDrawerOpen: boolean;
+  setFilters: (filters: Partial<FilterState>) => void;
+  fetchCards: () => Promise<void>;
+  updateCardStatus: (id: string, status: string, metadata?: any) => Promise<void>;
+  updateCard: (id: string, updates: Partial<Card>) => Promise<void>;
+  addCard: (cardData: Partial<Card>) => void;
+  deleteCard: (id: string) => void;
+  generateLabel: (id: string) => void;
+  selectCard: (card: Card | null) => void;
+  setDetailDrawerOpen: (open: boolean) => void;
 }
 
-const mapApiStatus = (apiStatus: string): StreamStatus => {
-  const statusMap: Record<string, StreamStatus> = {
-    'Draft': 'Draft',
-    'draft': 'Draft',
-    'Locked': 'Locked',
-    'locked': 'Locked',
-    'Finalized': 'Finalized',
-    'finalized': 'Finalized'
+const mapApiStatus = (apiStatus: string): CardStatus => {
+  const statusMap: Record<string, CardStatus> = {
+    'pending': 'Staged',
+    'received': 'Arrived',
+    'graded': 'Available',
+    'inventory': 'Available',
+    'Available': 'Available',
+    'reserved': 'AllocatedToStream',
+    'AllocatedToStream': 'AllocatedToStream',
+    'sold': 'Sold',
+    'Sold': 'Sold',
+    'ToShip': 'ToShip',
+    'Packed': 'Packed',
+    'shipped': 'Shipped',
+    'Shipped': 'Shipped'
   };
-  return statusMap[apiStatus] || 'Draft';
+  return statusMap[apiStatus] || 'Staged';
 };
 
-export const useStreamsStore = create<StreamsState>((set, get) => ({
-  streams: [],
-  currentStream: null,
-  streamItems: [],
+const mapFrontendStatus = (frontendStatus: CardStatus): string => {
+  const statusMap: Record<CardStatus, string> = {
+    'Staged': 'pending',
+    'Arrived': 'received',
+    'Available': 'Available',
+    'AllocatedToStream': 'AllocatedToStream',
+    'Sold': 'Sold',
+    'ToShip': 'ToShip',
+    'Packed': 'Packed',
+    'Shipped': 'Shipped'
+  };
+  return statusMap[frontendStatus] || 'pending';
+};
+
+export const useInventoryStore = create<InventoryState>((set, get) => ({
+  cards: [],
   loading: false,
   error: null,
-  itemsLoading: false,
-  selectedStream: null,
+  pagination: {
+    page: 1,
+    limit: 25,
+    total: 0,
+    pages: 0
+  },
+  filters: { search: '' },
+  selectedCard: null,
+  isDetailDrawerOpen: false,
 
-  fetchStreams: async () => {
+  setFilters: (newFilters) => {
+    set((state) => ({
+      filters: { ...state.filters, ...newFilters },
+      pagination: { ...state.pagination, page: 1 }
+    }));
+    get().fetchCards();
+  },
+
+  fetchCards: async () => {
     set({ loading: true, error: null });
     try {
-      const result = await streamService.getStreams();
-      // console.log(result,"result in fetch streams")
-      if ( result.data.data.items) {
-        // Access the exact API response structure: result.data.data (array) and result.data.pagination
-        const apiStreams = result.data.data.items || [];
-        // console.log(apiStreams,"api streams")
-        const streams: Stream[] = apiStreams.map((apiStream: any) => ({
-          id: apiStream.id || apiStream._id,
-          title: apiStream.title,
-          streamer: apiStream.streamerUserId?.displayName || 'SlabTrack User',
-          date: new Date(apiStream.date || apiStream.createdAt),
-          status: mapApiStatus(apiStream.status),
-          totalItems: apiStream.totalItems || 0,
-          totalCost: apiStream.totalValue || 0,
-          grossSales: apiStream.grossSales,
-          fees: apiStream.fees,
-          profit: apiStream.profit,
-          cards: [],
-          createdAt: new Date(apiStream.createdAt),
-          updatedAt: new Date(apiStream.updatedAt),
+      const { filters, pagination } = get();
+      
+      const apiFilters: any = {
+        page: pagination.page,
+        limit: pagination.limit
+      };
+      
+      if (filters.search) apiFilters.search = filters.search;
+      if (filters.status && filters.status.length > 0) {
+        apiFilters.status = filters.status.map(mapFrontendStatus).join(',');
+      }
+      if (filters.sport && filters.sport.length > 0) {
+        apiFilters.sport = filters.sport.join(',');
+      }
+      if (filters.yearRange) {
+        apiFilters.year = filters.yearRange[0];
+      }
+      if (filters.priceRange) {
+        apiFilters.minValue = filters.priceRange[0];
+        apiFilters.maxValue = filters.priceRange[1];
+      }
+      
+      const result = await cardService.getCards(apiFilters);
+      
+      if (result.success && result.data) {
+        // Access the exact API response structure: result.data.cards and result.data.pagination
+        const apiCards = result.data.items || [];
+        const cards: Card[] = apiCards.map((apiCard: any) => ({
+          id: apiCard._id,
+          displayId: apiCard.displayId,
+          title: apiCard.title || 'Unknown Card',
+          player: apiCard.player,
+          sport: apiCard.sport,
+          year: apiCard.year,
+          grade: apiCard.gradingCompany && apiCard.grade ? `${apiCard.gradingCompany} ${apiCard.grade}` : apiCard.grade,
+          purchasePrice: apiCard.purchasePrice || 0,
+          currentValue: apiCard.currentValue,
+          status: apiCard.status,
+          createdAt: new Date(apiCard.createdAt),
+          updatedAt: new Date(apiCard.updatedAt),
+          notes: apiCard.description || '',
+          imageUrl: apiCard.imageUrl,
         }));
         
-        set({ streams, loading: false, error: null });
+        set({
+          cards,
+          pagination: result.data.pagination || pagination,
+          loading: false,
+          error: null
+        });
       } else {
-        set({ loading: false, error: result.error || 'Failed to fetch streams' });
+        set({ 
+          loading: false, 
+          error: result.error || 'Failed to fetch cards'
+        });
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
-      set({ loading: false, error: errorMessage });
+      set({ 
+        loading: false, 
+        error: errorMessage 
+      });
     }
   },
 
-  fetchStreamDetails: async (id: string) => {
-    set({ loading: true, error: null });
+  updateCardStatus: async (id, status, metadata = {}) => {
     try {
-      const result = await streamService.getStreamDetails(id);
-      console.log(result,"in store ")
+      const apiStatus = mapFrontendStatus(status as CardStatus);
+      const result = await cardService.updateCardStatus(id, apiStatus, metadata);
+      
       if (result.success && result.data) {
-        const apiStream = result.data;
-        const stream = {
-          id: apiStream._id,
-          title: apiStream.title,
-          description: apiStream.description,
-          targetValue: apiStream.targetValue,
-          streamer: apiStream.streamerUserId?.displayName || 'SlabTrack User',
-          streamerUserId: apiStream.streamerUserId?._id,
-          date: new Date(apiStream.date),
-          status: mapApiStatus(apiStream.status),
-          totalItems: apiStream.totalItems || 0,
-          totalCost: apiStream.totalValue || 0,
-          grossSales: apiStream.grossSales,
-          fees: apiStream.fees,
-          profit: apiStream.profit,
-          bulkSale: apiStream.bulkSale,
-          items: apiStream.items || [],
-          lockedAt: apiStream.lockedAt ? new Date(apiStream.lockedAt) : null,
-          lockedBy: apiStream.lockedBy,
-          finalizedAt: apiStream.finalizedAt ? new Date(apiStream.finalizedAt) : null,
-          finalizedBy: apiStream.finalizedBy,
-          createdAt: new Date(apiStream.createdAt),
-          updatedAt: new Date(apiStream.updatedAt),
+        // Access the exact API response structure: result.data.card
+        const updatedCard = result.data.card;
+        set((state) => ({
+          cards: state.cards.map(card => 
+            card.id === id 
+              ? { ...card, status: mapApiStatus(updatedCard.status), updatedAt: new Date(updatedCard.updatedAt) }
+              : card
+          )
+        }));
+        toast.success(result.data.message || 'Card status updated successfully');
+      } else {
+        toast.error(result.error || 'Failed to update status');
+      }
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      toast.error(errorMessage);
+    }
+  },
+
+  updateCard: async (id, updates) => {
+    try {
+      const result = await cardService.updateCard(id, updates);
+      
+      if (result.success && result.data) {
+        // Access the exact API response structure: result.data.card
+        const updatedCard = result.data.card;
+        const mappedCard = {
+          id: updatedCard._id,
+          displayId: updatedCard.displayId,
+          title: updatedCard.title,
+          player: updatedCard.player,
+          sport: updatedCard.sport,
+          year: updatedCard.year,
+          grade: updatedCard.gradingCompany && updatedCard.grade ? `${updatedCard.gradingCompany} ${updatedCard.grade}` : updatedCard.grade,
+          purchasePrice: updatedCard.purchasePrice,
+          currentValue: updatedCard.currentValue,
+          status: mapApiStatus(updatedCard.status),
+          createdAt: new Date(updatedCard.createdAt),
+          updatedAt: new Date(updatedCard.updatedAt),
+          notes: updatedCard.description || '',
+          imageUrl: updatedCard.imageUrl,
         };
         
-        set({ currentStream: stream, loading: false, error: null });
-      } else {
-        set({ loading: false, error: result.error || 'Failed to fetch stream details' });
-      }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      set({ loading: false, error: errorMessage });
-    }
-  },
-
-  fetchStreamItems: async (id: string) => {
-    set({ itemsLoading: true });
-    try {
-      const result = await streamService.getStreamItems(id);
-      console.log(result,"in stream add card")
-      
-      if (result.data) {
-        set({ streamItems: result.data.data.items || [], itemsLoading: false });
-      } else {
-        set({ itemsLoading: false });
-        toast.error(result.error || 'Failed to fetch stream items');
-      }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      set({ itemsLoading: false });
-      toast.error(errorMessage);
-    }
-  },
-
-  createStream: async (streamData) => {
-    try {
-      const result = await streamService.createStream(streamData);
-      
-      if (result.success && result.data) {
-        const apiStream = result.data;
-        const newStream: Stream = {
-          id: apiStream.id,
-          title: apiStream.title,
-          streamer: 'SlabTrack User',
-          date: new Date(apiStream.date || apiStream.createdAt),
-          status: mapApiStatus(apiStream.status),
-          totalItems: apiStream.totalItems || 0,
-          totalCost: apiStream.totalValue || 0,
-          cards: [],
-          createdAt: new Date(apiStream.createdAt),
-          updatedAt: new Date(apiStream.updatedAt),
-        };
-        
         set((state) => ({
-          streams: [...state.streams, newStream]
-        }));
-        
-        toast.success('Stream created successfully');
-      } else {
-        toast.error(result.error || 'Failed to create stream');
-      }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast.error(errorMessage);
-    }
-  },
-
-  addCardToStream: async (streamId: string, displayId: string): Promise<boolean> => {
-    try {
-      const result = await streamService.addCardToStream(streamId, displayId);
-      if (result.success && result.data) {
-        const { item, stream, message } = result.data;
-        
-        // Update current stream if it's the same one
-        set((state) => {
-          if (state.currentStream?.id === streamId) {
-            return {
-              currentStream: {
-                ...state.currentStream,
-                totalItems: stream.totalItems,
-                totalCost: stream.totalValue,
-                items: [...(state.currentStream.items || []), item]
-              }
-            };
-          }
-          return state;
-        });
-        
-        // Update streams list
-        set((state) => ({
-          streams: state.streams.map(s => 
-            s.id === streamId 
-              ? { ...s, totalItems: stream.totalItems, totalCost: stream.totalValue }
-              : s
+          cards: state.cards.map(card => 
+            card.id === id ? mappedCard : card
           )
         }));
-        
-        toast.success(message || 'Card added to stream');
-        return true;
+        toast.success(result.data.message || 'Card updated successfully');
       } else {
-        toast.error(result.error || 'Failed to add card to stream');
-        return false;
-      }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast.error(errorMessage);
-      return false;
-    }
-  },
-
-  removeCardFromStream: async (streamId: string, cardId: string) => {
-    try {
-      const result = await streamService.removeCardFromStream(streamId, cardId);
-      
-      if (result.success && result.data) {
-        const { stream, message } = result.data;
-        
-        // Update current stream
-        set((state) => {
-          if (state.currentStream?.id === streamId) {
-            return {
-              currentStream: {
-                ...state.currentStream,
-                totalItems: stream.totalItems,
-                totalCost: stream.totalValue,
-                items: state.currentStream.items?.filter(item => item.cardId !== cardId) || []
-              }
-            };
-          }
-          return state;
-        });
-        
-        // Update streams list
-        set((state) => ({
-          streams: state.streams.map(s => 
-            s.id === streamId 
-              ? { ...s, totalItems: stream.totalItems, totalCost: stream.totalValue }
-              : s
-          )
-        }));
-        
-        toast.success(message || 'Card removed from stream');
-      } else {
-        toast.error(result.error || 'Failed to remove card from stream');
+        toast.error(result.error || 'Failed to update card');
       }
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -256,99 +216,53 @@ export const useStreamsStore = create<StreamsState>((set, get) => ({
     }
   },
 
-  lockStream: async (id: string) => {
-    try {
-      const result = await streamService.lockStream(id);
-      
-      if (result.success && result.data) {
-        const { stream, message } = result.data;
-        
-        // Update current stream
-        set((state) => {
-          if (state.currentStream?.id === id) {
-            return {
-              currentStream: {
-                ...state.currentStream,
-                status: mapApiStatus(stream.status),
-                lockedAt: stream.lockedAt ? new Date(stream.lockedAt) : null,
-                lockedBy: stream.lockedBy
-              }
-            };
-          }
-          return state;
-        });
-        
-        // Update streams list
-        set((state) => ({
-          streams: state.streams.map(s => 
-            s.id === id 
-              ? { ...s, status: mapApiStatus(stream.status) }
-              : s
-          )
-        }));
-        
-        toast.success(message || 'Stream locked successfully');
-      } else {
-        toast.error(result.error || 'Failed to lock stream');
-      }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast.error(errorMessage);
+  addCard: (cardData) => {
+    const newCard: Card = {
+      id: Math.random().toString(36).substr(2, 9),
+      displayId: cardData.displayId || `ST-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 999999)).padStart(6, '0')}`,
+      title: cardData.title || '',
+      player: cardData.player || '',
+      sport: cardData.sport || 'Baseball',
+      year: cardData.year || new Date().getFullYear(),
+      grade: cardData.grade,
+      purchasePrice: cardData.purchasePrice || 0,
+      currentValue: cardData.currentValue,
+      status: (cardData.status as CardStatus) || 'Staged',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      notes: cardData.notes,
+      imageUrl: cardData.imageUrl,
+    };
+
+    set((state) => ({
+      cards: [newCard, ...state.cards]
+    }));
+  },
+
+  deleteCard: (id) => {
+    set((state) => ({
+      cards: state.cards.filter(card => card.id !== id)
+    }));
+  },
+
+  generateLabel: (id) => {
+    const { cards } = get();
+    const card = cards.find(c => c.id === id);
+    if (card) {
+      // Open the PDF label from backend storage
+      const labelUrl = config.getLabelUrl(card.displayId);
+      window.open(labelUrl, '_blank');
     }
   },
 
-  finalizeStream: async (id: string, grossSales: number, fees: number, bulkSale: boolean = false) => {
-    try {
-      const result = await streamService.finalizeStream(id, { grossSales, fees, bulkSale });
-      
-      if (result.success && result.data) {
-        const { stream, message } = result.data;
-        
-        // Update current stream
-        set((state) => {
-          if (state.currentStream?.id === id) {
-            return {
-              currentStream: {
-                ...state.currentStream,
-                status: mapApiStatus(stream.status),
-                grossSales: stream.grossSales,
-                fees: stream.fees,
-                profit: stream.profit,
-                bulkSale: stream.bulkSale,
-                finalizedAt: stream.finalizedAt ? new Date(stream.finalizedAt) : null,
-                finalizedBy: stream.finalizedBy
-              }
-            };
-          }
-          return state;
-        });
-        
-        // Update streams list
-        set((state) => ({
-          streams: state.streams.map(s => 
-            s.id === id 
-              ? { 
-                  ...s, 
-                  status: mapApiStatus(stream.status),
-                  grossSales: stream.grossSales,
-                  fees: stream.fees,
-                  profit: stream.profit
-                }
-              : s
-          )
-        }));
-        
-        toast.success(message || 'Stream finalized successfully');
-      } else {
-        toast.error(result.error || 'Failed to finalize stream');
-      }
-    } catch (error) {
-      const errorMessage = handleApiError(error);
-      toast.error(errorMessage);
-    }
+  selectCard: (card) => {
+    set({ selectedCard: card });
   },
 
-  selectStream: (stream) => {
-    set({ selectedStream: stream });
+  setDetailDrawerOpen: (open) => {
+    set({ isDetailDrawerOpen: open });
+    if (!open) {
+      set({ selectedCard: null });
+    }
   },
 }));
