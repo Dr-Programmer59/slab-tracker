@@ -48,12 +48,6 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
         const { card, row, message } = result.data;
         toast.success(message || 'Card marked as arrived and label generated!');
         
-        // Automatically open the generated label
-        if (card.displayId) {
-          const labelUrl = config.getLabelUrl(card.displayId);
-          window.open(labelUrl, '_blank');
-        }
-        
         fetchRows(); // Refresh the rows
       } else {
         toast.error(result.error || 'Failed to mark as arrived');
