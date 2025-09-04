@@ -700,7 +700,7 @@ export function StreamDetail() {
                 </p>
               </div>
             </div>
-          </div>
+          )}
 
 
           {/* Action Buttons */}
