@@ -60,15 +60,16 @@ export const streamService = {
   // CREATE NEW STREAM
   async createStream(streamData: StreamData): Promise<ApiResponse<any>> {
     try {
+      console.log("stream data", streamData);
       const response = await api.post('/streams', {
-        name: streamData.name,
+        name: streamData.title,
         description: streamData.description || '',
         targetValue: streamData.targetValue || 0,
         date: streamData.date
       });
       
       // Check API response format: { success: true, data: { stream } }
-      if (!response.data.success) {
+      if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to create stream');
       }
       
@@ -166,7 +167,7 @@ export const streamService = {
       const response = await api.post(`/streams/${streamId}/lock`);
       
       // Check API response format: { success: true, data: { stream, message } }
-      if (!response.data.success) {
+      if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to lock stream');
       }
       
@@ -189,7 +190,7 @@ export const streamService = {
       });
       
       // Check API response format: { success: true, data: { stream, message } }
-      if (!response.data.success) {
+      if (!response.data.ok) {
         throw new Error(response.data.error?.message || 'Failed to finalize stream');
       }
       
