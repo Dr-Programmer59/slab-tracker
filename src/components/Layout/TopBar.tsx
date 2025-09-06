@@ -82,10 +82,10 @@ export function TopBar({ onMenuToggle, isMobileMenuOpen }: TopBarProps) {
         </motion.div>
 
         {/* Notifications */}
-        <motion.button className="hidden sm:block">
+        <motion.button 
+          className="hidden sm:block p-2 text-slate-400 hover:text-white transition-colors relative"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="p-2 text-slate-400 hover:text-white transition-colors relative"
         >
           <Bell className="w-5 h-5" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-cyan-500 rounded-full"></span>
