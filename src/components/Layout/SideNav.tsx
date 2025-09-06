@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
 import { 
   Upload, 
   Package, 
@@ -26,7 +27,12 @@ const navItems = [
   { path: '/audit', label: 'Audit', icon: FileText, permission: 'audit.view' },
 ];
 
-export function SideNav() {
+interface SideNavProps {
+  isMobileMenuOpen: boolean;
+  onClose: () => void;
+}
+
+export function SideNav({ isMobileMenuOpen, onClose }: SideNavProps) {
   const { hasPermission } = usePermissions();
   const location = useLocation();
 
@@ -35,7 +41,28 @@ export function SideNav() {
   );
 
   return (
-    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-800 border-r border-slate-700 overflow-y-auto">
+    <>
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside className={`
+        fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-800 border-r border-slate-700 overflow-y-auto z-50 transform transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+      `}>
+        {/* Mobile Close Button */}
+        <div className="md:hidden flex justify-end p-4">
+          <button onClick={onClose} className="text-slate-400 hover:text-white">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        
       <nav className="p-4">
         <ul className="space-y-2">
           {filteredNavItems.map((item, index) => {
@@ -49,6 +76,7 @@ export function SideNav() {
               >
                 <NavLink
                   to={item.path}
+                  onClick={() => onClose()} // Close mobile menu on navigation
                   className={({ isActive }) => `
                     flex items-center gap-3 px-3 py-2 rounded-lg transition-all group
                     ${isActive 
@@ -74,5 +102,6 @@ export function SideNav() {
         </ul>
       </nav>
     </aside>
+    </>
   );
 }

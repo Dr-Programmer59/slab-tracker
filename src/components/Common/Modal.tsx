@@ -14,10 +14,10 @@ interface ModalProps {
 
 export function Modal({ isOpen, onClose, title, children, size = 'md', preventClose = false }: ModalProps) {
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
+    sm: 'max-w-sm md:max-w-md',
+    md: 'max-w-md md:max-w-lg',
+    lg: 'max-w-lg md:max-w-2xl',
+    xl: 'max-w-xl md:max-w-4xl',
   };
 
   return (
@@ -46,14 +46,14 @@ export function Modal({ isOpen, onClose, title, children, size = 'md', preventCl
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className={`w-full ${sizeClasses[size]} transform overflow-hidden rounded-xl bg-slate-800 border border-slate-700 p-6 text-left align-middle shadow-xl transition-all`}>
+              <Dialog.Panel className={`w-full ${sizeClasses[size]} transform overflow-hidden rounded-xl bg-slate-800 border border-slate-700 p-4 md:p-6 text-left align-middle shadow-xl transition-all mx-4`}>
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <Dialog.Title as="h3" className="text-lg font-semibold text-white">
+                    <Dialog.Title as="h3" className="text-base md:text-lg font-semibold text-white">
                       {title}
                     </Dialog.Title>
                     {!preventClose && (

@@ -13,8 +13,6 @@ export function Builder() {
   const [scanInput, setScanInput] = useState('');
   const scanInputRef = useRef<HTMLInputElement>(null);
 
-  // Cards are now loaded globally in AppLayout
-
   // Keep input focused for barcode scanner
   useEffect(() => {
     if (sessionActive && scanInputRef.current) {
@@ -62,7 +60,7 @@ export function Builder() {
   const totalCost = sessionItems.reduce((sum, item) => sum + item.purchasePrice, 0);
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] bg-slate-900 p-4 md:p-6">
+    <div className="min-h-[calc(100vh-6rem)] bg-slate-900 p-4">
       {/* Mobile-optimized header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -72,7 +70,7 @@ export function Builder() {
         <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <QrCode className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">Stream Builder</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-white mb-2">Stream Builder</h1>
         <p className="text-slate-400">Scan cards to build your stream session</p>
       </motion.div>
 
@@ -82,15 +80,15 @@ export function Builder() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="max-w-md mx-auto"
+          className="max-w-sm md:max-w-md mx-auto"
         >
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center">
             <Camera className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Ready to Build?</h3>
+            <h3 className="text-base md:text-lg font-semibold text-white mb-2">Ready to Build?</h3>
             <p className="text-slate-400 mb-6">
               Start scanning cards to build your stream session
             </p>
-            <Button onClick={startSession} size="lg" className="w-full">
+            <Button onClick={startSession} size="lg" className="w-full text-sm md:text-base">
               <Zap className="w-5 h-5" />
               Start New Session
             </Button>
@@ -98,16 +96,16 @@ export function Builder() {
         </motion.div>
       ) : (
         /* Active Session */
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-full md:max-w-2xl mx-auto space-y-4 md:space-y-6">
           {/* Scan Area */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-800 border-2 border-dashed border-indigo-500 rounded-xl p-8"
+            className="bg-slate-800 border-2 border-dashed border-indigo-500 rounded-xl p-4 md:p-8"
           >
             <div className="text-center">
-              <QrCode className="w-16 h-16 text-indigo-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Scan Cards</h3>
+              <QrCode className="w-12 h-12 md:w-16 md:h-16 text-indigo-400 mx-auto mb-4" />
+              <h3 className="text-base md:text-lg font-semibold text-white mb-2">Scan Cards</h3>
               <p className="text-slate-400 mb-4">
                 Use your scanner or type card ID manually
               </p>
@@ -123,7 +121,7 @@ export function Builder() {
                     handleScan(scanInput);
                   }
                 }}
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white text-center text-lg font-mono"
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 md:px-4 py-2 md:py-3 text-white text-center text-base md:text-lg font-mono"
                 placeholder="Scan or type card ID..."
                 autoFocus
               />
@@ -141,23 +139,24 @@ export function Builder() {
             </motion.div>
           )}
 
-          {/* Session Summary */}
+                      className="flex items-center gap-2 md:gap-4 p-3 md:p-4 bg-slate-700 rounded-lg"
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+                      <div className="w-6 h-8 md:w-8 md:h-10 bg-slate-600 rounded flex items-center justify-center flex-shrink-0">
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-slate-800 border border-slate-700 rounded-xl p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-white">Session Items</h3>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className="text-sm text-slate-400">Total Cost</p>
-                  <p className="text-xl font-bold text-white">${totalCost.toFixed(2)}</p>
+            className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6"
+                        <p className="font-medium text-white text-sm md:text-base truncate">{item.title}</p>
+                        <p className="text-xs md:text-sm text-slate-400">{item.player} • ${item.purchasePrice}</p>
+                        <p className="text-xs text-slate-500 font-mono">{item.displayId}</p>
+              <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
+                      <div className="text-white font-medium text-sm md:text-base flex-shrink-0">${item.purchasePrice}</div>
+                  <p className="text-xs md:text-sm text-slate-400">Items: {sessionItems.length}</p>
+                  <p className="text-lg md:text-xl font-bold text-white">${totalCost.toFixed(2)}</p>
                 </div>
-                <Button variant="danger" onClick={stopSession}>
+                <Button variant="danger" onClick={stopSession} size="sm" className="flex-shrink-0">
                   <StopCircle className="w-4 h-4" />
-                  Stop Building
+                  <span className="hidden sm:inline">Stop Building</span>
+                  <span className="sm:hidden">Stop</span>
                 </Button>
               </div>
             </div>
@@ -165,12 +164,12 @@ export function Builder() {
             {sessionItems.length === 0 ? (
               <div className="text-center py-8">
                 <Package className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                <p className="text-slate-400">No items scanned yet</p>
+                <h4 className="text-xs md:text-sm font-medium text-slate-300 mb-3">Session Items</h4>
               </div>
             ) : (
               <div className="space-y-3">
                 {sessionItems.map((item, index) => (
-                  <motion.div
+                <p className="text-slate-400 text-sm md:text-base">No items scanned yet</p>
                     key={`${item.id}-${index}`}
                     initial={{ x: -20, opacity: 0, scale: 0.95 }}
                     animate={{ x: 0, opacity: 1, scale: 1 }}

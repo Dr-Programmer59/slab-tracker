@@ -40,7 +40,7 @@ export function Streams() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-white">Streams</h1>
@@ -49,7 +49,7 @@ export function Streams() {
           </p>
         </div>
         {canFinalizeStreams() && (
-          <Button onClick={() => setShowCreateModal(true)}>
+          <Button onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto">
             <Plus className="w-4 h-4" />
             Create Stream
           </Button>
@@ -85,17 +85,17 @@ export function Streams() {
         className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
       >
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[700px]">
             <thead className="bg-slate-700">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Stream</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Date</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Items</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Cost</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Sales</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Profit</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Status</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Actions</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Stream</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Date</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Items</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Cost</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 hidden sm:table-cell">Sales</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 hidden sm:table-cell">Profit</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Status</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -109,40 +109,40 @@ export function Streams() {
                   className="border-b border-slate-700 cursor-pointer"
                   onClick={() => navigate(`/streams/${stream.id}`)}
                 >
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <div>
-                      <div className="font-medium text-white">{stream.title}</div>
-                      <div className="text-sm text-slate-400">{stream.streamer}</div>
+                      <div className="font-medium text-white text-sm md:text-base truncate max-w-[150px] md:max-w-none">{stream.title}</div>
+                      <div className="text-xs md:text-sm text-slate-400">{stream.streamer}</div>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-300">{stream.date.toLocaleDateString()}</span>
+                      <span className="text-slate-300 text-xs md:text-sm">{stream.date.toLocaleDateString()}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className="text-white font-medium">{stream.totalItems}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-6">
+                    <span className="text-white font-medium text-sm md:text-base">{stream.totalItems}</span>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className="text-white font-medium">${stream.totalCost}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-6">
+                    <span className="text-white font-medium text-sm md:text-base">${stream.totalCost}</span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6 hidden sm:table-cell">
                     {stream.grossSales ? (
-                      <span className="text-white font-medium">${stream.grossSales}</span>
+                      <span className="text-white font-medium text-sm md:text-base">${stream.grossSales}</span>
                     ) : (
                       <span className="text-slate-500">—</span>
                     )}
                   </td>
-                  <td className="py-4 px-6">
-                    <span className={`font-medium ${getProfitColor(getProfit(stream))}`}>
+                  <td className="py-3 md:py-4 px-3 md:px-6 hidden sm:table-cell">
+                    <span className={`font-medium text-sm md:text-base ${getProfitColor(getProfit(stream))}`}>
                       {getProfit(stream) !== 0 ? `$${getProfit(stream)}` : '—'}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <StatusChip status={stream.status} />
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
@@ -151,6 +151,7 @@ export function Streams() {
                           e.stopPropagation();
                           navigate(`/streams/${stream.id}`);
                         }}
+                        className="hidden sm:flex"
                       >
                         <FileText className="w-4 h-4" />
                         View
@@ -163,11 +164,24 @@ export function Streams() {
                             e.stopPropagation();
                             navigate('/builder');
                           }}
+                          className="hidden sm:flex"
                         >
                           <Play className="w-4 h-4" />
                           Build
                         </Button>
                       )}
+                      {/* Mobile: Single action button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/streams/${stream.id}`);
+                        }}
+                        className="sm:hidden"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Button>
                     </div>
                   </td>
                 </motion.tr>

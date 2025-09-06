@@ -91,7 +91,7 @@ export function Dashboard() {
       </motion.div>
 
       {/* KPI Grid */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <KPICard
           title="Inventory Value"
           value={kpis.inventoryValue}
@@ -130,7 +130,7 @@ export function Dashboard() {
       </motion.div>
 
       {/* Charts and Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <motion.div variants={itemVariants}>
           <InventoryChart />
         </motion.div>

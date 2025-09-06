@@ -141,7 +141,7 @@ export function Reports() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-white">Reports</h1>
@@ -150,11 +150,12 @@ export function Reports() {
           </p>
         </div>
         {canExport && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <Button 
               variant="secondary" 
               onClick={() => handleExport('inventory', 'Inventory')}
               loading={exporting === 'inventory'}
+              className="w-full sm:w-auto"
             >
               <Download className="w-4 h-4" />
               Export Inventory
@@ -163,6 +164,7 @@ export function Reports() {
               variant="secondary" 
               onClick={() => handleExport('sold', 'Sales Data')}
               loading={exporting === 'sold'}
+              className="w-full sm:w-auto"
             >
               <Download className="w-4 h-4" />
               Export Sales
@@ -178,14 +180,14 @@ export function Reports() {
         transition={{ delay: 0.1 }}
         className="bg-slate-800 border border-slate-700 rounded-xl p-6"
       >
-        <div className="flex items-center gap-6 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-slate-400" />
             <span className="text-slate-300 font-medium">Date Range</span>
           </div>
           
           {/* Predefined Ranges */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {['day', 'week', 'month', 'quarter', 'year', 'all'].map((range) => (
               <button
                 key={range}
@@ -213,7 +215,7 @@ export function Reports() {
 
           {/* Custom Date Inputs */}
           {dateRange.range === 'custom' && (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
               <input
                 type="date"
                 value={dateRange.start}
@@ -238,7 +240,7 @@ export function Reports() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
         >
           <KPICard
             title="Inventory Value"

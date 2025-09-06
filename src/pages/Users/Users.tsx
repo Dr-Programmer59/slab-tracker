@@ -181,7 +181,7 @@ export function Users() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-white">User Management</h1>
@@ -189,7 +189,7 @@ export function Users() {
             Manage user accounts and permissions ({pagination.total} total users)
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)}>
+        <Button onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto">
           <UserPlus className="w-4 h-4" />
           Create User
         </Button>
@@ -202,9 +202,9 @@ export function Users() {
         transition={{ delay: 0.1 }}
         className="bg-slate-800 border border-slate-700 rounded-xl p-6"
       >
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           {/* Search */}
-          <div className="flex-1 min-w-64">
+          <div className="flex-1 min-w-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
@@ -217,11 +217,12 @@ export function Users() {
             </div>
           </div>
 
-          {/* Role Filter */}
+          <div className="flex gap-2 sm:gap-4">
+            {/* Role Filter */}
           <select
             value={filters.role}
             onChange={(e) => handleRoleFilter(e.target.value)}
-            className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="flex-1 sm:flex-none bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="">All Roles</option>
             <option value="admin">Admin</option>
@@ -233,12 +234,13 @@ export function Users() {
           <select
             value={filters.status}
             onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
-            className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="flex-1 sm:flex-none bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
+          </div>
         </div>
       </motion.div>
 
@@ -250,15 +252,15 @@ export function Users() {
         className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
       >
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[600px]">
             <thead className="bg-slate-700">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">User</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Role</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Status</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Last Login</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Created</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Actions</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">User</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Role</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Status</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 hidden sm:table-cell">Last Login</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 hidden md:table-cell">Created</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -270,29 +272,29 @@ export function Users() {
                   transition={{ delay: index * 0.05 }}
                   className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
                 >
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <div>
-                      <div className="font-medium text-white">{user.displayName}</div>
-                      <div className="text-sm text-slate-400">{user.email}</div>
+                      <div className="font-medium text-white text-sm md:text-base">{user.displayName}</div>
+                      <div className="text-xs md:text-sm text-slate-400 truncate max-w-[150px] md:max-w-none">{user.email}</div>
                       {user.id === currentUser?.id && (
                         <div className="text-xs text-cyan-400 mt-1">You</div>
                       )}
                     </div>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
                       {user.role}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(user.status)}`}>
                       {user.status}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6 hidden sm:table-cell">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-300 text-sm">
+                      <span className="text-slate-300 text-xs md:text-sm">
                         {user.lastLoginAt 
                           ? new Date(user.lastLoginAt).toLocaleDateString()
                           : 'Never'
@@ -300,12 +302,12 @@ export function Users() {
                       </span>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className="text-slate-300 text-sm">
+                  <td className="py-3 md:py-4 px-3 md:px-6 hidden md:table-cell">
+                    <span className="text-slate-300 text-xs md:text-sm">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
@@ -345,7 +347,7 @@ export function Users() {
           transition={{ delay: 0.3 }}
           className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-xl p-4"
         >
-          <div className="text-slate-400 text-sm">
+          <div className="text-slate-400 text-xs md:text-sm">
             Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
           </div>
           <div className="flex items-center gap-2">
@@ -357,7 +359,7 @@ export function Users() {
             >
               Previous
             </Button>
-            <span className="text-slate-300 text-sm px-3">
+            <span className="text-slate-300 text-xs md:text-sm px-2 md:px-3">
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <Button

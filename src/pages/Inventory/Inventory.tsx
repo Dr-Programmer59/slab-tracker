@@ -49,7 +49,7 @@ export function Inventory() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-white">Inventory</h1>
@@ -57,16 +57,17 @@ export function Inventory() {
             {pagination.total} cards {filters.search && `matching "${filters.search}"`}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button
             variant="secondary"
             onClick={() => setShowFilters(true)}
+            className="flex-1 sm:flex-none"
           >
             <Filter className="w-4 h-4" />
             Filters
           </Button>
           {hasPermission('cards.update') && (
-            <Button onClick={() => setShowAddModal(true)}>
+            <Button onClick={() => setShowAddModal(true)} className="flex-1 sm:flex-none">
               <Plus className="w-4 h-4" />
               Add Card
             </Button>
@@ -117,19 +118,19 @@ export function Inventory() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
+        className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden overflow-x-auto"
       >
-        <div className="overflow-x-auto">
+        <div className="min-w-full">
           <table className="w-full">
             <thead className="bg-slate-700">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Card</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Player</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Details</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Purchase</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Current</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Status</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Actions</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[200px]">Card</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[120px]">Player</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[100px]">Details</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[80px]">Purchase</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[80px]">Current</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[100px]">Status</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[80px]">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -143,44 +144,44 @@ export function Inventory() {
                   className="border-b border-slate-700 cursor-pointer"
                   onClick={() => handleCardClick(card)}
                 >
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
+                    <div className="flex items-center gap-2 md:gap-3">
                       {card.imageUrl && (
                         <img 
                           src={card.imageUrl} 
                           alt={card.title}
-                          className="w-10 h-14 object-cover rounded bg-slate-600"
+                          className="w-8 h-10 md:w-10 md:h-14 object-cover rounded bg-slate-600"
                         />
                       )}
                       <div>
-                        <div className="font-medium text-white">{card.title}</div>
+                        <div className="font-medium text-white text-sm md:text-base truncate max-w-[150px] md:max-w-none">{card.title}</div>
                         <div className="text-xs text-slate-400">{card.displayId}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className="text-slate-300">{card.player}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-6">
+                    <span className="text-slate-300 text-sm md:text-base truncate block max-w-[100px] md:max-w-none">{card.player}</span>
                   </td>
-                  <td className="py-4 px-6">
-                    <div className="text-sm">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
+                    <div className="text-xs md:text-sm">
                       <div className="text-slate-300">{card.sport} • {card.year}</div>
                       {card.grade && <div className="text-slate-400">{card.grade}</div>}
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className="text-white font-medium">${card.purchasePrice}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-6">
+                    <span className="text-white font-medium text-sm md:text-base">${card.purchasePrice}</span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     {card.currentValue ? (
-                      <span className="text-green-400 font-medium">${card.currentValue}</span>
+                      <span className="text-green-400 font-medium text-sm md:text-base">${card.currentValue}</span>
                     ) : (
                       <span className="text-slate-500">—</span>
                     )}
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <StatusChip status={card.status} />
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -208,7 +209,7 @@ export function Inventory() {
           transition={{ delay: 0.3 }}
           className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-xl p-4"
         >
-          <div className="text-slate-400 text-sm">
+          <div className="text-slate-400 text-xs md:text-sm">
             Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} cards
           </div>
           <div className="flex items-center gap-2">
@@ -222,7 +223,7 @@ export function Inventory() {
             >
               Previous
             </Button>
-            <span className="text-slate-300 text-sm">
+            <span className="text-slate-300 text-xs md:text-sm px-2">
               Page {pagination.page} of {pagination.pages}
             </span>
             <Button

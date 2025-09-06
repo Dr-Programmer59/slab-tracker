@@ -10,6 +10,7 @@ export function AppLayout() {
   const { user } = useAuthStore();
   const { initializeCards } = useInventoryStore();
   const [cardsLoaded, setCardsLoaded] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   // Always initialize cards data when app layout mounts (including refresh)
   React.useEffect(() => {
@@ -26,18 +27,22 @@ export function AppLayout() {
     loadCards();
   }, [initializeCards]);
 
+  const handleMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
     <div className="min-h-screen bg-slate-900">
-      <TopBar />
+      <TopBar onMenuToggle={handleMenuToggle} isMobileMenuOpen={isMobileMenuOpen} />
       <div className="flex">
-        <SideNav />
-        <main className="flex-1 ml-64">
+        <SideNav isMobileMenuOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+        <main className="flex-1 md:ml-64">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="p-6"
+            className="p-4 md:p-6"
           >
             <Outlet />
           </motion.div>
