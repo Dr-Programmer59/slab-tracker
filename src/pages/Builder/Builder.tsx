@@ -139,17 +139,18 @@ export function Builder() {
             </motion.div>
           )}
 
-                      className="flex items-center gap-2 md:gap-4 p-3 md:p-4 bg-slate-700 rounded-lg"
+          {/* Session Summary */}
           <motion.div
-                      <div className="w-6 h-8 md:w-8 md:h-10 bg-slate-600 rounded flex items-center justify-center flex-shrink-0">
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6"
-                        <p className="font-medium text-white text-sm md:text-base truncate">{item.title}</p>
-                        <p className="text-xs md:text-sm text-slate-400">{item.player} • ${item.purchasePrice}</p>
-                        <p className="text-xs text-slate-500 font-mono">{item.displayId}</p>
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+              <h4 className="text-xs md:text-sm font-medium text-slate-300 mb-3">Session Summary</h4>
               <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
-                      <div className="text-white font-medium text-sm md:text-base flex-shrink-0">${item.purchasePrice}</div>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-slate-400" />
                   <p className="text-xs md:text-sm text-slate-400">Items: {sessionItems.length}</p>
                   <p className="text-lg md:text-xl font-bold text-white">${totalCost.toFixed(2)}</p>
                 </div>
@@ -164,27 +165,27 @@ export function Builder() {
             {sessionItems.length === 0 ? (
               <div className="text-center py-8">
                 <Package className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                <h4 className="text-xs md:text-sm font-medium text-slate-300 mb-3">Session Items</h4>
+                <p className="text-slate-400 text-sm md:text-base">No items scanned yet</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {sessionItems.map((item, index) => (
-                <p className="text-slate-400 text-sm md:text-base">No items scanned yet</p>
+                  <motion.div
                     key={`${item.id}-${index}`}
                     initial={{ x: -20, opacity: 0, scale: 0.95 }}
                     animate={{ x: 0, opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.05 }}
-                    className="flex items-center gap-4 p-4 bg-slate-700 rounded-lg"
+                    className="flex items-center gap-2 md:gap-4 p-3 md:p-4 bg-slate-700 rounded-lg"
                   >
-                    <div className="w-8 h-10 bg-slate-600 rounded flex items-center justify-center">
+                    <div className="w-6 h-8 md:w-8 md:h-10 bg-slate-600 rounded flex items-center justify-center flex-shrink-0">
                       <Package className="w-4 h-4 text-slate-400" />
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-white">{item.title}</p>
-                      <p className="text-sm text-slate-400">{item.player} • ${item.purchasePrice}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-white text-sm md:text-base truncate">{item.title}</p>
+                      <p className="text-xs md:text-sm text-slate-400">{item.player} • ${item.purchasePrice}</p>
                       <p className="text-xs text-slate-500 font-mono">{item.displayId}</p>
                     </div>
-                    <div className="text-white font-medium">${item.purchasePrice}</div>
+                    <div className="text-white font-medium text-sm md:text-base flex-shrink-0">${item.purchasePrice}</div>
                   </motion.div>
                 ))}
               </div>
