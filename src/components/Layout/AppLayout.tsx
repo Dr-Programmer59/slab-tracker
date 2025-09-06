@@ -36,13 +36,13 @@ export function AppLayout() {
       <TopBar onMenuToggle={handleMenuToggle} isMobileMenuOpen={isMobileMenuOpen} />
       <div className="flex">
         <SideNav isMobileMenuOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
-        <main className="flex-1 md:ml-64">
+        <main className="flex-1 md:ml-64 min-w-0 overflow-hidden">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="p-4 md:p-6"
+            className="p-4 md:p-6 w-full max-w-full overflow-x-hidden"
           >
             <Outlet />
           </motion.div>

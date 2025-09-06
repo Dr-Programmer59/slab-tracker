@@ -79,24 +79,25 @@ export function Streams() {
 
       {/* Streams Table */}
       {!loading && !error && (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
+        >
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="min-w-[700px] px-4 sm:px-0">
+              <table className="w-full">
             <thead className="bg-slate-700">
               <tr>
-                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Stream</th>
-                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Date</th>
-                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Items</th>
-                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Cost</th>
-                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 hidden sm:table-cell">Sales</th>
-                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 hidden sm:table-cell">Profit</th>
-                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Status</th>
-                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Actions</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[150px]">Stream</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[80px]">Date</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[60px]">Items</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[70px]">Cost</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[70px] hidden sm:table-cell">Sales</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[70px] hidden sm:table-cell">Profit</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[80px]">Status</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[100px]">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -112,31 +113,31 @@ export function Streams() {
                 >
                   <td className="py-3 md:py-4 px-3 md:px-6">
                     <div>
-                      <div className="font-medium text-white text-sm md:text-base truncate max-w-[150px] md:max-w-none">{stream.title}</div>
-                      <div className="text-xs md:text-sm text-slate-400">{stream.streamer}</div>
+                      <div className="font-medium text-white text-sm md:text-base truncate max-w-[120px]">{stream.title}</div>
+                      <div className="text-xs md:text-sm text-slate-400 truncate max-w-[120px]">{stream.streamer}</div>
                     </div>
                   </td>
                   <td className="py-3 md:py-4 px-3 md:px-6">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-300 text-xs md:text-sm">{stream.date.toLocaleDateString()}</span>
+                      <span className="text-slate-300 text-xs">{stream.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     </div>
                   </td>
                   <td className="py-3 md:py-4 px-3 md:px-6">
-                    <span className="text-white font-medium text-sm md:text-base">{stream.totalItems}</span>
+                    <span className="text-white font-medium text-sm">{stream.totalItems}</span>
                   </td>
                   <td className="py-3 md:py-4 px-3 md:px-6">
-                    <span className="text-white font-medium text-sm md:text-base">${stream.totalCost}</span>
+                    <span className="text-white font-medium text-sm">${stream.totalCost}</span>
                   </td>
                   <td className="py-3 md:py-4 px-3 md:px-6 hidden sm:table-cell">
                     {stream.grossSales ? (
-                      <span className="text-white font-medium text-sm md:text-base">${stream.grossSales}</span>
+                      <span className="text-white font-medium text-sm">${stream.grossSales}</span>
                     ) : (
                       <span className="text-slate-500">—</span>
                     )}
                   </td>
                   <td className="py-3 md:py-4 px-3 md:px-6 hidden sm:table-cell">
-                    <span className={`font-medium text-sm md:text-base ${getProfitColor(getProfit(stream))}`}>
+                    <span className={`font-medium text-sm ${getProfitColor(getProfit(stream))}`}>
                       {getProfit(stream) !== 0 ? `$${getProfit(stream)}` : '—'}
                     </span>
                   </td>
@@ -188,9 +189,10 @@ export function Streams() {
                 </motion.tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      </motion.div>
+              </table>
+            </div>
+          </div>
+        </motion.div>
       )}
 
       {/* Create Stream Modal */}

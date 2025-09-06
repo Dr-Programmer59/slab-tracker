@@ -100,12 +100,12 @@ export function Import() {
   };
 
   return (
-    <div className="min-w-0 space-y-4 md:space-y-6 px-2 sm:px-0">
+    <div className="w-full max-w-full space-y-4 md:space-y-6 px-4 sm:px-0 overflow-x-hidden">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white">Import</h1>
@@ -125,11 +125,11 @@ export function Import() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6 md:p-8"
+        className="bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6"
       >
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+          className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center cursor-pointer transition-all ${
             isDragActive
               ? 'border-indigo-500 bg-indigo-500/10'
               : 'border-slate-600 hover:border-slate-500'
@@ -147,15 +147,15 @@ export function Import() {
               <h3 className="text-base sm:text-lg font-medium text-white mb-2">
                 {uploading ? 'Uploading...' : isDragActive ? 'Drop file here' : 'Upload trading card data'}
               </h3>
-              <p className="text-slate-400 text-xs sm:text-sm">
+              <p className="text-slate-400 text-xs sm:text-sm px-2">
                 Drag and drop your CSV or Excel file, or click to browse
               </p>
-              <p className="text-slate-500 text-xs mt-2">
+              <p className="text-slate-500 text-xs mt-2 px-2">
                 Supported formats: .csv, .xlsx, .xls (max 10MB)
               </p>
             </div>
             {uploading && (
-              <div className="w-full bg-slate-700 rounded-full h-2 mx-auto max-w-xs sm:max-w-sm">
+              <div className="w-full bg-slate-700 rounded-full h-2 mx-auto max-w-xs">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: '100%' }}
