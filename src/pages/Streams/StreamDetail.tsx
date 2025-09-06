@@ -9,6 +9,7 @@ import {
   Package, 
   Radio,
   QrCode,
+  }, [id, fetchStreamDetails, fetchStreamItems]);
   Camera,
   Zap,
   StopCircle,
