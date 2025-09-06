@@ -36,7 +36,7 @@ export function Shipping() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-white">Shipping</h1>
@@ -44,14 +44,14 @@ export function Shipping() {
             Process sold items through packing and shipping
           </p>
         </div>
-        <Button variant="secondary">
+        <Button variant="secondary" className="w-full sm:w-auto">
           <FileText className="w-4 h-4" />
           Export Queue
         </Button>
       </motion.div>
 
       {/* Shipping Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {/* To Ship */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -79,10 +79,10 @@ export function Shipping() {
                 className="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-white text-sm">{item.title}</p>
+                  <p className="font-medium text-white text-sm truncate max-w-[150px]">{item.title}</p>
                   <StatusChip status={item.status} animate={false} />
                 </div>
-                <p className="text-slate-400 text-xs mb-3">{item.player} • {item.displayId}</p>
+                <p className="text-slate-400 text-xs mb-3 truncate">{item.player} • {item.displayId}</p>
                 <Button
                   size="sm"
                   onClick={() => markPacked(item.id)}
@@ -130,10 +130,10 @@ export function Shipping() {
                 className="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-white text-sm">{item.title}</p>
+                  <p className="font-medium text-white text-sm truncate max-w-[150px]">{item.title}</p>
                   <StatusChip status={item.status} animate={false} />
                 </div>
-                <p className="text-slate-400 text-xs mb-3">{item.player} • {item.displayId}</p>
+                <p className="text-slate-400 text-xs mb-3 truncate">{item.player} • {item.displayId}</p>
                 <Button
                   size="sm"
                   onClick={() => markShipped(item)}
@@ -181,10 +181,10 @@ export function Shipping() {
                 className="p-4 bg-slate-700 rounded-lg"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-white text-sm">{item.title}</p>
+                  <p className="font-medium text-white text-sm truncate max-w-[150px]">{item.title}</p>
                   <StatusChip status={item.status} animate={false} />
                 </div>
-                <p className="text-slate-400 text-xs">{item.player} • {item.displayId}</p>
+                <p className="text-slate-400 text-xs truncate">{item.player} • {item.displayId}</p>
               </motion.div>
             ))}
             

@@ -67,7 +67,7 @@ export function Audit() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-white">Audit Log</h1>
@@ -75,8 +75,8 @@ export function Audit() {
             Track all system changes and user actions
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="secondary">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button variant="secondary" className="flex-1 sm:flex-none">
             <Filter className="w-4 h-4" />
             Filters
           </Button>
@@ -108,14 +108,14 @@ export function Audit() {
         className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
       >
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[700px]">
             <thead className="bg-slate-700">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Time</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">User</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Action</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Entity</th>
-                <th className="text-left py-4 px-6 text-sm font-medium text-slate-300">Changes</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[120px]">Time</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[100px] hidden sm:table-cell">User</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[120px]">Action</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[100px] hidden md:table-cell">Entity</th>
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[150px] hidden lg:table-cell">Changes</th>
               </tr>
             </thead>
             <tbody>
@@ -127,43 +127,43 @@ export function Audit() {
                   transition={{ delay: index * 0.03 }}
                   className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
                 >
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-slate-400" />
                       <div>
-                        <div className="text-white text-sm">
+                        <div className="text-white text-xs md:text-sm">
                           {entry.timestamp.toLocaleDateString()}
                         </div>
-                        <div className="text-slate-400 text-xs">
+                        <div className="text-slate-400 text-xs hidden sm:block">
                           {entry.timestamp.toLocaleTimeString()}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6 hidden sm:table-cell">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-300">{entry.userName}</span>
+                      <span className="text-slate-300 text-sm truncate max-w-[80px] md:max-w-none">{entry.userName}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className="text-white font-medium">{entry.action}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-6">
+                    <span className="text-white font-medium text-sm md:text-base">{entry.action}</span>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6 hidden md:table-cell">
                     <div>
-                      <div className="text-slate-300">{entry.entityType}</div>
-                      <div className="text-slate-400 text-sm">{entry.entityId}</div>
+                      <div className="text-slate-300 text-sm">{entry.entityType}</div>
+                      <div className="text-slate-400 text-xs truncate max-w-[100px]">{entry.entityId}</div>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-3 md:py-4 px-3 md:px-6 hidden lg:table-cell">
                     <div className="space-y-1">
                       {entry.oldValues && Object.entries(entry.oldValues).map(([key, value]) => (
                         <div key={key} className="text-xs">
                           <span className="text-slate-400">{key}:</span>
-                          <span className="text-red-400 ml-1">{String(value)}</span>
+                          <span className="text-red-400 ml-1 truncate max-w-[60px] inline-block">{String(value)}</span>
                           <span className="text-slate-500 mx-1">→</span>
                           <span className="text-green-400">
-                            {String((entry.newValues as any)?.[key] || 'N/A')}
+                            <span className="truncate max-w-[60px] inline-block">{String((entry.newValues as any)?.[key] || 'N/A')}</span>
                           </span>
                         </div>
                       ))}

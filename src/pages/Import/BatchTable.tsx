@@ -22,15 +22,15 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full min-w-[600px]">
           <thead>
             <tr className="border-b border-slate-700">
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Name</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Created By</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Date</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Rows</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Status</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Actions</th>
+              <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[150px]">Name</th>
+              <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[120px] hidden sm:table-cell">Created By</th>
+              <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[100px]">Date</th>
+              <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[80px]">Rows</th>
+              <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[100px]">Status</th>
+              <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[120px]">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -42,27 +42,27 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
                 transition={{ delay: index * 0.05 }}
                 className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
               >
-                <td className="py-4 px-4">
-                  <div className="font-medium text-white">{batch.name}</div>
+                <td className="py-3 md:py-4 px-3 md:px-4">
+                  <div className="font-medium text-white text-sm md:text-base truncate max-w-[120px] md:max-w-none">{batch.name}</div>
                 </td>
-                <td className="py-4 px-4">
+                <td className="py-3 md:py-4 px-3 md:px-4 hidden sm:table-cell">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-300 text-sm">
+                    <span className="text-slate-300 text-xs md:text-sm truncate max-w-[100px] md:max-w-none">
                       {batch.createdBy.displayName || 'Unknown'}
                     </span>
                   </div>
                 </td>
-                <td className="py-4 px-4">
+                <td className="py-3 md:py-4 px-3 md:px-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-300 text-sm">
+                    <span className="text-slate-300 text-xs md:text-sm">
                       {new Date(batch.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </td>
-                <td className="py-4 px-4">
-                  <span className="text-white font-medium">
+                <td className="py-3 md:py-4 px-3 md:px-4">
+                  <span className="text-white font-medium text-sm md:text-base">
                     {batch.arrivedCount || 0}/{batch.totalRows}
                   </span>
                   <div className="w-full bg-slate-700 rounded-full h-1 mt-1">
@@ -72,30 +72,34 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
                     />
                   </div>
                 </td>
-                <td className="py-4 px-4">
+                <td className="py-3 md:py-4 px-3 md:px-4">
                   <StatusChip status={batch.status} />
                 </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
+                <td className="py-3 md:py-4 px-3 md:px-4">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onSelectBatch(batch)}
+                      className="w-full sm:w-auto text-xs"
                     >
                       <Eye className="w-4 h-4" />
-                      View Rows
+                      <span className="hidden sm:inline">View Rows</span>
+                      <span className="sm:hidden">View</span>
                     </Button>
                     {batch.status === 'Open' && (
                       <Button
                         variant="secondary"
                         size="sm"
+                        className="w-full sm:w-auto text-xs"
                         onClick={() => {
                           onSelectBatch(batch);
                           onFinishBatch();
                         }}
                       >
                         <Lock className="w-4 h-4" />
-                        Finish
+                        <span className="hidden sm:inline">Finish</span>
+                        <span className="sm:hidden">Finish</span>
                       </Button>
                     )}
                   </div>

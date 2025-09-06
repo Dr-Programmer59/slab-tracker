@@ -99,17 +99,17 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-b border-slate-700">
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Row #</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Title</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Player</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Details</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Price</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Status</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Validation</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Actions</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[60px]">Row #</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[150px]">Title</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[120px] hidden sm:table-cell">Player</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[100px] hidden md:table-cell">Details</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[80px]">Price</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[100px]">Status</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[100px] hidden lg:table-cell">Validation</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[120px]">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -121,30 +121,30 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
                   transition={{ delay: index * 0.05 }}
                   className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
                 >
-                  <td className="py-4 px-4">
-                    <span className="text-slate-400 text-sm">#{row.rowNumber}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-4">
+                    <span className="text-slate-400 text-xs md:text-sm">#{row.rowNumber}</span>
                   </td>
-                  <td className="py-4 px-4">
-                    <span className="text-white font-medium">{row.title || '—'}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-4">
+                    <span className="text-white font-medium text-sm md:text-base truncate block max-w-[120px] md:max-w-none">{row.title || '—'}</span>
                   </td>
-                  <td className="py-4 px-4">
-                    <span className="text-slate-300">{row.player || '—'}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-4 hidden sm:table-cell">
+                    <span className="text-slate-300 text-sm md:text-base truncate block max-w-[100px] md:max-w-none">{row.player || '—'}</span>
                   </td>
-                  <td className="py-4 px-4">
-                    <div className="text-sm">
+                  <td className="py-3 md:py-4 px-3 md:px-4 hidden md:table-cell">
+                    <div className="text-xs md:text-sm">
                       <div className="text-slate-300">
                         {row.sport && row.year ? `${row.sport} • ${row.year}` : (row.sport || row.year || '—')}
                       </div>
                       {row.grade && <div className="text-slate-400">{row.grade}</div>}
                     </div>
                   </td>
-                  <td className="py-4 px-4">
-                    <span className="text-white font-medium">${row.purchasePrice}</span>
+                  <td className="py-3 md:py-4 px-3 md:px-4">
+                    <span className="text-white font-medium text-sm md:text-base">${row.purchasePrice}</span>
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-3 md:py-4 px-3 md:px-4">
                     <StatusChip status={row.status} />
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-3 md:py-4 px-3 md:px-4 hidden lg:table-cell">
                     <div className="flex items-center gap-2">
                       {row.validationErrors.length === 0 ? (
                         <Check className="w-4 h-4 text-green-400" />
@@ -158,19 +158,21 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
                       </span>
                     </div>
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-3 md:py-4 px-3 md:px-4">
                     {row.status === 'Staged' && row.validationErrors.length === 0 && (
                       <Button
                         variant="primary"
                         size="sm"
                         onClick={() => markArrived(row._id)}
+                        className="w-full sm:w-auto text-xs"
                       >
                         <Printer className="w-4 h-4" />
-                        Mark Arrived
+                        <span className="hidden sm:inline">Mark Arrived</span>
+                        <span className="sm:hidden">Arrive</span>
                       </Button>
                     )}
                     {row.status === 'Arrived' && row.linkedCardId && (
-                      <span className="text-green-400 text-sm">✓ Card Created</span>
+                      <span className="text-green-400 text-xs md:text-sm">✓ Created</span>
                     )}
                   </td>
                 </motion.tr>

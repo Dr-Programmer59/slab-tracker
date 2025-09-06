@@ -187,30 +187,30 @@ export function StreamDetail() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <Button variant="ghost" onClick={() => navigate('/streams')}>
             <ArrowLeft className="w-4 h-4" />
             Back to Streams
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-white">{currentStream.title}</h1>
-            <p className="text-slate-400 mt-1">
+            <h1 className="text-xl md:text-2xl font-bold text-white">{currentStream.title}</h1>
+            <p className="text-slate-400 mt-1 text-sm md:text-base">
               {currentStream.streamer} • {currentStream.date.toLocaleDateString()}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <StatusChip status={currentStream.status} />
           {canLock && currentStream.status === 'Draft' && (
-            <Button variant="secondary" onClick={handleLock}>
+            <Button variant="secondary" onClick={handleLock} className="w-full sm:w-auto">
               <Lock className="w-4 h-4" />
               Lock Stream
             </Button>
           )}
           {canFinalize && currentStream.status === 'Locked' && (
-            <Button onClick={() => setShowFinalizeModal(true)}>
+            <Button onClick={() => setShowFinalizeModal(true)} className="w-full sm:w-auto">
               <Calculator className="w-4 h-4" />
               Finalize
             </Button>
@@ -268,29 +268,29 @@ export function StreamDetail() {
             className="space-y-6"
           >
             {/* Stream Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <Package className="w-5 h-5 text-indigo-400" />
-                  <span className="text-slate-400 text-sm">Total Items</span>
+                  <span className="text-slate-400 text-xs md:text-sm">Total Items</span>
                 </div>
-                <p className="text-2xl font-bold text-white">{currentStream.totalItems}</p>
+                <p className="text-xl md:text-2xl font-bold text-white">{currentStream.totalItems}</p>
               </div>
 
               <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <DollarSign className="w-5 h-5 text-red-400" />
-                  <span className="text-slate-400 text-sm">Total Cost</span>
+                  <span className="text-slate-400 text-xs md:text-sm">Total Cost</span>
                 </div>
-                <p className="text-2xl font-bold text-white">${currentStream.totalCost}</p>
+                <p className="text-xl md:text-2xl font-bold text-white">${currentStream.totalCost}</p>
               </div>
 
               <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <DollarSign className="w-5 h-5 text-green-400" />
-                  <span className="text-slate-400 text-sm">Gross Sales</span>
+                  <span className="text-slate-400 text-xs md:text-sm">Gross Sales</span>
                 </div>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-xl md:text-2xl font-bold text-white">
                   {currentStream.grossSales ? `$${currentStream.grossSales}` : '—'}
                 </p>
               </div>
@@ -298,9 +298,9 @@ export function StreamDetail() {
               <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <Calculator className="w-5 h-5 text-cyan-400" />
-                  <span className="text-slate-400 text-sm">Profit</span>
+                  <span className="text-slate-400 text-xs md:text-sm">Profit</span>
                 </div>
-                <p className={`text-2xl font-bold ${getProfitColor(currentStream.profit || 0)}`}>
+                <p className={`text-xl md:text-2xl font-bold ${getProfitColor(currentStream.profit || 0)}`}>
                   {currentStream.profit !== undefined ? `$${currentStream.profit}` : '—'}
                 </p>
               </div>
@@ -365,15 +365,15 @@ export function StreamDetail() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[600px]">
                     <thead className="bg-slate-700">
                       <tr>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Card</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Title</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Purchase Price</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Added</th>
+                        <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[120px]">Card</th>
+                        <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[150px]">Title</th>
+                        <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[100px]">Price</th>
+                        <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[120px] hidden sm:table-cell">Added</th>
                         {currentStream.status === 'Draft' && canEdit && (
-                          <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Actions</th>
+                          <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[100px]">Actions</th>
                         )}
                       </tr>
                     </thead>
@@ -386,33 +386,36 @@ export function StreamDetail() {
                           transition={{ delay: index * 0.05 }}
                           className="border-b border-slate-700"
                         >
-                          <td className="py-3 px-4">
-                            <span className="text-white font-mono">{item.displayId}</span>
+                          <td className="py-3 px-3 md:px-4">
+                            <span className="text-white font-mono text-sm">{item.displayId}</span>
                             {recentlyAdded.includes(item.cardId) && (
-                              <span className="ml-2 text-xs bg-green-600 text-white px-2 py-1 rounded-full">
-                                Recently added
+                              <span className="ml-1 md:ml-2 text-xs bg-green-600 text-white px-1 md:px-2 py-1 rounded-full">
+                                <span className="hidden sm:inline">Recently added</span>
+                                <span className="sm:hidden">New</span>
                               </span>
                             )}
                           </td>
-                          <td className="py-3 px-4">
-                            <span className="text-white">{item.title}</span>
+                          <td className="py-3 px-3 md:px-4">
+                            <span className="text-white text-sm md:text-base truncate block max-w-[120px] md:max-w-none">{item.title}</span>
                           </td>
-                          <td className="py-3 px-4">
-                            <span className="text-white font-medium">${item.purchasePrice}</span>
+                          <td className="py-3 px-3 md:px-4">
+                            <span className="text-white font-medium text-sm md:text-base">${item.purchasePrice}</span>
                           </td>
-                          <td className="py-3 px-4">
-                            <span className="text-slate-300 text-sm">
+                          <td className="py-3 px-3 md:px-4 hidden sm:table-cell">
+                            <span className="text-slate-300 text-xs md:text-sm">
                               {new Date(item.addedAt).toLocaleString()}
                             </span>
                           </td>
                           {currentStream.status === 'Draft' && canEdit && (
-                            <td className="py-3 px-4">
+                            <td className="py-3 px-3 md:px-4">
                               <Button
                                 variant="danger"
                                 size="sm"
                                 onClick={() => handleRemoveItem(item.cardId)}
+                                className="w-full sm:w-auto"
                               >
                                 <Trash2 className="w-4 h-4" />
+                                <span className="sr-only">Remove</span>
                               </Button>
                             </td>
                           )}
@@ -450,17 +453,17 @@ export function StreamDetail() {
               </div>
             ) : (
               /* Active Builder */
-              <div className="max-w-2xl mx-auto space-y-6">
+              <div className="max-w-full md:max-w-2xl mx-auto space-y-4 md:space-y-6">
                 {/* Scan Area */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-slate-800 border-2 border-dashed border-indigo-500 rounded-xl p-8"
+                  className="bg-slate-800 border-2 border-dashed border-indigo-500 rounded-xl p-4 md:p-8"
                 >
                   <div className="text-center">
-                    <QrCode className="w-16 h-16 text-indigo-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-white mb-2">Scan Cards</h3>
-                    <p className="text-slate-400 mb-4">
+                    <QrCode className="w-12 h-12 md:w-16 md:h-16 text-indigo-400 mx-auto mb-4" />
+                    <h3 className="text-base md:text-lg font-semibold text-white mb-2">Scan Cards</h3>
+                    <p className="text-slate-400 mb-4 text-sm md:text-base">
                       Use your scanner or type card ID manually
                     </p>
                     
@@ -474,7 +477,7 @@ export function StreamDetail() {
                           handleScan(scanInput);
                         }
                       }}
-                      className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white text-center text-lg font-mono"
+                      className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 md:px-4 py-2 md:py-3 text-white text-center text-base md:text-lg font-mono"
                       placeholder="Scan or type card ID..."
                       autoFocus
                     />
@@ -496,17 +499,18 @@ export function StreamDetail() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-white">Building Session</h3>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm text-slate-400">Items: {currentStream.totalItems}</p>
-                        <p className="text-xl font-bold text-white">${currentStream.totalCost}</p>
+                  className="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 md:mb-6">
+                    <h3 className="text-base md:text-lg font-semibold text-white">Building Session</h3>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                      <div className="text-left sm:text-right">
+                        <p className="text-xs md:text-sm text-slate-400">Items: {currentStream.totalItems}</p>
+                        <p className="text-lg md:text-xl font-bold text-white">${currentStream.totalCost}</p>
                       </div>
-                      <Button variant="danger" onClick={stopBuilding}>
+                      <Button variant="danger" onClick={stopBuilding} size="sm" className="w-full sm:w-auto">
                         <StopCircle className="w-4 h-4" />
-                        Stop Building
+                        <span className="hidden sm:inline">Stop Building</span>
+                        <span className="sm:hidden">Stop</span>
                       </Button>
                     </div>
                   </div>
@@ -514,22 +518,22 @@ export function StreamDetail() {
                   {/* Recently Added */}
                   {recentlyAdded.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-slate-300 mb-3">Recently Added</h4>
-                      <div className="space-y-2">
+                      <h4 className="text-xs md:text-sm font-medium text-slate-300 mb-3">Recently Added</h4>
+                      <div className="space-y-2 md:space-y-3">
                         {recentlyAdded.map((displayId, index) => (
                           <motion.div
                             key={`${displayId}-${index}`}
                             initial={{ x: -20, opacity: 0, scale: 0.95 }}
                             animate={{ x: 0, opacity: 1, scale: 1 }}
                             transition={{ delay: index * 0.05 }}
-                            className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg"
+                            className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-slate-700 rounded-lg"
                           >
-                            <div className="w-6 h-8 bg-slate-600 rounded flex items-center justify-center">
-                              <Package className="w-3 h-3 text-slate-400" />
+                            <div className="w-6 h-8 md:w-8 md:h-10 bg-slate-600 rounded flex items-center justify-center flex-shrink-0">
+                              <Package className="w-3 h-3 md:w-4 md:h-4 text-slate-400" />
                             </div>
-                            <div className="flex-1">
-                              <p className="text-white font-mono text-sm">{displayId}</p>
-                              <p className="text-xs text-green-400">✓ Added successfully</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-mono text-xs md:text-sm truncate">{displayId}</p>
+                              <p className="text-xs text-green-400">✓ Added</p>
                             </div>
                           </motion.div>
                         ))}

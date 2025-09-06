@@ -105,7 +105,7 @@ export function Import() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-white">Import</h1>
@@ -113,7 +113,7 @@ export function Import() {
             Upload CSV or Excel files to import trading card data
           </p>
         </div>
-        <Button variant="secondary" size="sm">
+        <Button variant="secondary" size="sm" className="w-full sm:w-auto">
           <Download className="w-4 h-4" />
           Download Template
         </Button>
