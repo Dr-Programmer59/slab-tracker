@@ -62,23 +62,23 @@ export function Audit() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 md:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">Audit Log</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Audit Log</h1>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base">
             Track all system changes and user actions
           </p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button variant="secondary" className="flex-1 sm:flex-none">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <Button variant="secondary" className="flex-1 sm:flex-none shrink-0">
             <Filter className="w-4 h-4" />
-            Filters
+            <span className="hidden sm:inline">Filters</span>
           </Button>
         </div>
       </motion.div>
@@ -96,7 +96,7 @@ export function Audit() {
           placeholder="Search audit entries..."
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3 sm:py-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
         />
       </motion.div>
 
@@ -105,10 +105,11 @@ export function Audit() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden"
+        className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden p-4 sm:p-0"
       >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="min-w-[700px] px-4 sm:px-0">
+          <table className="w-full">
             <thead className="bg-slate-700">
               <tr>
                 <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300 min-w-[120px]">Time</th>
@@ -173,6 +174,7 @@ export function Audit() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </motion.div>
     </div>

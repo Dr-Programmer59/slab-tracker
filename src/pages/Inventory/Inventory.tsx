@@ -44,32 +44,33 @@ export function Inventory() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 md:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">Inventory</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Inventory</h1>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base">
             {pagination.total} cards {filters.search && `matching "${filters.search}"`}
           </p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <Button
             variant="secondary"
             onClick={() => setShowFilters(true)}
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none shrink-0"
           >
             <Filter className="w-4 h-4" />
-            Filters
+            <span className="hidden sm:inline">Filters</span>
           </Button>
           {hasPermission('cards.update') && (
-            <Button onClick={() => setShowAddModal(true)} className="flex-1 sm:flex-none">
+            <Button onClick={() => setShowAddModal(true)} className="flex-1 sm:flex-none shrink-0">
               <Plus className="w-4 h-4" />
-              Add Card
+              <span className="hidden sm:inline">Add Card</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           )}
         </div>
@@ -85,10 +86,10 @@ export function Inventory() {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
         <input
           type="text"
-          placeholder="Search cards, players, or use ⌘K for command palette..."
+          placeholder="Search cards, players..."
           value={filters.search}
           onChange={(e) => setFilters({ search: e.target.value })}
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3 sm:py-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
         />
       </motion.div>
 

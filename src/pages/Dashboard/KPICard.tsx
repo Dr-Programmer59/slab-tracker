@@ -34,18 +34,18 @@ export function KPICard({ title, value, format, icon: Icon, trend, trendUp, colo
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all"
+      className="bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6 hover:border-slate-600 transition-all"
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
         <div className={`p-3 bg-gradient-to-r ${colorVariants[color]} rounded-lg shadow-lg`}>
-          <Icon className="w-6 h-6 text-white" />
+          <Icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
         </div>
         {trend && (
-          <div className="flex items-center gap-1 text-sm">
+          <div className="flex items-center gap-1 text-xs sm:text-sm">
             {trendUp !== undefined && (
               trendUp ? 
-                <TrendingUp className="w-4 h-4 text-green-400" /> :
-                <TrendingDown className="w-4 h-4 text-red-400" />
+                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" /> :
+                <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
             )}
             <span className={trendUp ? 'text-green-400' : trendUp === false ? 'text-red-400' : 'text-slate-400'}>
               {trend}
@@ -59,11 +59,11 @@ export function KPICard({ title, value, format, icon: Icon, trend, trendUp, colo
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-2xl font-bold text-white mb-1"
+          className="text-lg sm:text-2xl font-bold text-white mb-1"
         >
           {formatValue(value)}
         </motion.p>
-        <p className="text-slate-400 text-sm">{title}</p>
+        <p className="text-slate-400 text-xs sm:text-sm">{title}</p>
       </div>
     </motion.div>
   );

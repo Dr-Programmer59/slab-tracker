@@ -13,16 +13,17 @@ interface BatchTableProps {
 
 export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTableProps) {
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6 overflow-hidden">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <FileText className="w-5 h-5 text-slate-400" />
-          <h3 className="text-lg font-semibold text-white">Import Batches</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-white">Import Batches</h3>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[600px]">
+      <div className="overflow-x-auto -mx-4 sm:mx-0">
+        <div className="min-w-[600px] px-4 sm:px-0">
+        <table className="w-full">
           <thead>
             <tr className="border-b border-slate-700">
               <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-slate-300 min-w-[150px]">Name</th>
@@ -43,7 +44,7 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
                 className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
               >
                 <td className="py-3 md:py-4 px-3 md:px-4">
-                  <div className="font-medium text-white text-sm md:text-base truncate max-w-[120px] md:max-w-none">{batch.name}</div>
+                  <div className="font-medium text-white text-sm md:text-base truncate max-w-[100px] sm:max-w-[150px] md:max-w-none">{batch.name}</div>
                 </td>
                 <td className="py-3 md:py-4 px-3 md:px-4 hidden sm:table-cell">
                   <div className="flex items-center gap-2">
@@ -76,30 +77,30 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
                   <StatusChip status={batch.status} />
                 </td>
                 <td className="py-3 md:py-4 px-3 md:px-4">
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-2">
+                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-1 lg:gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onSelectBatch(batch)}
-                      className="w-full sm:w-auto text-xs"
+                      className="w-full lg:w-auto text-xs whitespace-nowrap"
                     >
                       <Eye className="w-4 h-4" />
-                      <span className="hidden sm:inline">View Rows</span>
-                      <span className="sm:hidden">View</span>
+                      <span className="hidden lg:inline">View Rows</span>
+                      <span className="lg:hidden">View</span>
                     </Button>
                     {batch.status === 'Open' && (
                       <Button
                         variant="secondary"
                         size="sm"
-                        className="w-full sm:w-auto text-xs"
+                        className="w-full lg:w-auto text-xs whitespace-nowrap"
                         onClick={() => {
                           onSelectBatch(batch);
                           onFinishBatch();
                         }}
                       >
                         <Lock className="w-4 h-4" />
-                        <span className="hidden sm:inline">Finish</span>
-                        <span className="sm:hidden">Finish</span>
+                        <span className="hidden lg:inline">Finish</span>
+                        <span className="lg:hidden">Finish</span>
                       </Button>
                     )}
                   </div>
@@ -108,6 +109,7 @@ export function BatchTable({ batches, onSelectBatch, onFinishBatch }: BatchTable
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

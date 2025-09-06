@@ -136,38 +136,40 @@ export function Reports() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 md:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">Reports</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Reports</h1>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base">
             Analytics and insights for your trading card business
           </p>
         </div>
         {canExport && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <Button 
               variant="secondary" 
               onClick={() => handleExport('inventory', 'Inventory')}
               loading={exporting === 'inventory'}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto shrink-0"
             >
               <Download className="w-4 h-4" />
-              Export Inventory
+              <span className="hidden sm:inline">Export Inventory</span>
+              <span className="sm:hidden">Inventory</span>
             </Button>
             <Button 
               variant="secondary" 
               onClick={() => handleExport('sold', 'Sales Data')}
               loading={exporting === 'sold'}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto shrink-0"
             >
               <Download className="w-4 h-4" />
-              Export Sales
+              <span className="hidden sm:inline">Export Sales</span>
+              <span className="sm:hidden">Sales</span>
             </Button>
           </div>
         )}

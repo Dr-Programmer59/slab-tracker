@@ -176,22 +176,23 @@ export function Users() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 md:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">User Management</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">User Management</h1>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base">
             Manage user accounts and permissions ({pagination.total} total users)
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto">
+        <Button onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto shrink-0">
           <UserPlus className="w-4 h-4" />
-          Create User
+          <span className="hidden sm:inline">Create User</span>
+          <span className="sm:hidden">Create</span>
         </Button>
       </motion.div>
 

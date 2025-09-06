@@ -100,22 +100,23 @@ export function Import() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 md:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">Import</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Import</h1>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base">
             Upload CSV or Excel files to import trading card data
           </p>
         </div>
-        <Button variant="secondary" size="sm" className="w-full sm:w-auto">
+        <Button variant="secondary" size="sm" className="w-full sm:w-auto shrink-0">
           <Download className="w-4 h-4" />
-          Download Template
+          <span className="hidden sm:inline">Download Template</span>
+          <span className="sm:hidden">Template</span>
         </Button>
       </motion.div>
 
@@ -124,7 +125,7 @@ export function Import() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-slate-800 border border-slate-700 rounded-xl p-8"
+        className="bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6 md:p-8"
       >
         <div
           {...getRootProps()}
@@ -141,12 +142,12 @@ export function Import() {
             transition={{ delay: 0.2 }}
             className="space-y-4"
           >
-            <Upload className="w-12 h-12 text-slate-400 mx-auto" />
+            <Upload className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400 mx-auto" />
             <div>
-              <h3 className="text-lg font-medium text-white mb-2">
+              <h3 className="text-base sm:text-lg font-medium text-white mb-2">
                 {uploading ? 'Uploading...' : isDragActive ? 'Drop file here' : 'Upload trading card data'}
               </h3>
-              <p className="text-slate-400 text-sm">
+              <p className="text-slate-400 text-xs sm:text-sm">
                 Drag and drop your CSV or Excel file, or click to browse
               </p>
               <p className="text-slate-500 text-xs mt-2">
@@ -154,7 +155,7 @@ export function Import() {
               </p>
             </div>
             {uploading && (
-              <div className="w-full bg-slate-700 rounded-full h-2 mx-auto max-w-xs">
+              <div className="w-full bg-slate-700 rounded-full h-2 mx-auto max-w-xs sm:max-w-sm">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: '100%' }}

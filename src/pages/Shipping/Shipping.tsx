@@ -31,41 +31,42 @@ export function Shipping() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 md:space-y-6 px-2 sm:px-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">Shipping</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Shipping</h1>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base">
             Process sold items through packing and shipping
           </p>
         </div>
-        <Button variant="secondary" className="w-full sm:w-auto">
+        <Button variant="secondary" className="w-full sm:w-auto shrink-0">
           <FileText className="w-4 h-4" />
-          Export Queue
+          <span className="hidden sm:inline">Export Queue</span>
+          <span className="sm:hidden">Export</span>
         </Button>
       </motion.div>
 
       {/* Shipping Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
         {/* To Ship */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-slate-800 border border-slate-700 rounded-xl p-6"
+          className="bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6"
         >
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4">
             <div className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center">
               <Package className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-white">To Ship</h3>
-              <p className="text-sm text-slate-400">{shippingItems.toShip.length} items</p>
+              <h3 className="font-semibold text-white text-sm sm:text-base">To Ship</h3>
+              <p className="text-xs sm:text-sm text-slate-400">{shippingItems.toShip.length} items</p>
             </div>
           </div>
 
@@ -76,20 +77,21 @@ export function Shipping() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
+                className="p-3 sm:p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-white text-sm truncate max-w-[150px]">{item.title}</p>
+                  <p className="font-medium text-white text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[150px]">{item.title}</p>
                   <StatusChip status={item.status} animate={false} />
                 </div>
-                <p className="text-slate-400 text-xs mb-3 truncate">{item.player} • {item.displayId}</p>
+                <p className="text-slate-400 text-xs mb-2 sm:mb-3 truncate">{item.player} • {item.displayId}</p>
                 <Button
                   size="sm"
                   onClick={() => markPacked(item.id)}
                   className="w-full"
                 >
                   <Scan className="w-4 h-4" />
-                  Pack Item
+                  <span className="hidden sm:inline">Pack Item</span>
+                  <span className="sm:hidden">Pack</span>
                 </Button>
               </motion.div>
             ))}
@@ -97,7 +99,7 @@ export function Shipping() {
             {shippingItems.toShip.length === 0 && (
               <div className="text-center py-8">
                 <Package className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-slate-500 text-sm">No items to ship</p>
+                <p className="text-slate-500 text-xs sm:text-sm">No items to ship</p>
               </div>
             )}
           </div>

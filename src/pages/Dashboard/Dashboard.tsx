@@ -74,24 +74,24 @@ export function Dashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="min-w-0 space-y-4 md:space-y-6 px-2 sm:px-0"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between">
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Dashboard</h1>
+          <p className="text-slate-400 mt-1 text-sm sm:text-base">
             Welcome back! Here's what's happening with your inventory.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-slate-400 text-sm">
+        <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm">
           <Clock className="w-4 h-4" />
           <span>Last updated: {new Date().toLocaleTimeString()}</span>
         </div>
       </motion.div>
 
       {/* KPI Grid */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <KPICard
           title="Inventory Value"
           value={kpis.inventoryValue}
@@ -130,7 +130,7 @@ export function Dashboard() {
       </motion.div>
 
       {/* Charts and Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <motion.div variants={itemVariants}>
           <InventoryChart />
         </motion.div>
