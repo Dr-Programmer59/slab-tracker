@@ -17,6 +17,7 @@ interface UserResponse {
 export const authService = {
   async login(email: string, password: string): Promise<LoginResponse> {
     try {
+      console.log('🔐 Attempting login for:', email);
       const response = await api.post('/auth/login', {
         email: email.toLowerCase(),
         password: password
@@ -47,14 +48,32 @@ export const authService = {
       localStorage.setItem('slabtrack_token', token);
       localStorage.setItem('slabtrack_user', JSON.stringify(mappedUser));
       
+      console.log('✅ Login successful for:', mappedUser.displayName);
       return { success: true, user: mappedUser, token };
     } catch (error: any) {
+      console.error('❌ Login error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        responseData: error.response?.data
+      });
+      
       localStorage.removeItem('slabtrack_token');
       localStorage.removeItem('slabtrack_user');
       
+      let errorMessage = 'Login failed';
+      
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+        errorMessage = 'Cannot connect to server. Please check if the backend is running.';
+      } else if (error.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return { 
         success: false, 
-        error: error.response?.data?.error?.message || error.message || 'Login failed'
+        error: errorMessage
       };
     }
   },
