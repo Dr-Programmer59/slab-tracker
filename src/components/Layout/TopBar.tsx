@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Bell, User, LogOut, Settings, Menu, X } from 'lucide-react';
+import { Search, Bell, User, LogOut, Settings, Menu as MenuIcon, X } from 'lucide-react';
 import { Menu } from '@headlessui/react';
 import { useAuthStore } from '../../store/auth';
 
@@ -29,7 +29,7 @@ export function TopBar({ onMenuToggle, isMobileMenuOpen }: TopBarProps) {
         onClick={onMenuToggle}
         className="md:hidden p-2 text-slate-400 hover:text-white transition-colors"
       >
-        {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isMobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
       </button>
 
       {/* Logo and Environment */}
