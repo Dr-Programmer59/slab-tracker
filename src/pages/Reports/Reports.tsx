@@ -12,7 +12,9 @@ import {
   Truck,
   Clock,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Users,
+  Receipt
 } from 'lucide-react';
 import { Button } from '../../components/Common/Button';
 import { KPICard } from '../Dashboard/KPICard';
@@ -29,6 +31,8 @@ export function Reports() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
+  
+  const [activeView, setActiveView] = useState<'standard' | 'consignment'>('standard');
   
   const [dateRange, setDateRange] = useState({
     range: 'month',
@@ -236,6 +240,37 @@ export function Reports() {
         </div>
       </motion.div>
 
+      {/* View Toggle */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-xl p-1"
+      >
+        <button
+          onClick={() => setActiveView('standard')}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
+            activeView === 'standard'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          Standard Reports
+        </button>
+        <button
+          onClick={() => setActiveView('consignment')}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
+            activeView === 'consignment'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Consignment Reports
+        </button>
+      </motion.div>
+
       {/* KPI Cards */}
       {kpis && (
         <motion.div
@@ -346,6 +381,7 @@ export function Reports() {
       )}
 
       {/* Export Options (Admin/Manager only) */}
+      {activeView === 'standard' && (
       {canExport && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -423,8 +459,122 @@ export function Reports() {
           </div>
         </motion.div>
       )}
+      )}
+
+      {/* Consignment Reports */}
+      {activeView === 'consignment' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-6"
+        >
+          {/* Consigned Inventory */}
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Package className="w-5 h-5 text-slate-400" />
+                <h3 className="text-lg font-semibold text-white">Consigned Inventory</h3>
+              </div>
+              {canExport && (
+                <Button
+                  variant="secondary"
+                  onClick={() => handleExport('consigned-inventory', 'Consigned Inventory')}
+                  loading={exporting === 'consigned-inventory'}
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
+              )}
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-700">
+                  <tr>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Display ID</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Title</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Consignor</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Status</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Days on Hand</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-300">Market Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Mock data - replace with actual consigned inventory */}
+                  <tr className="border-b border-slate-700">
+                    <td className="py-3 px-4 text-white font-mono text-sm">ST-2024-000123</td>
+                    <td className="py-3 px-4 text-white">2023 Topps Chrome Ronald Acuña Jr.</td>
+                    <td className="py-3 px-4 text-slate-300">John Smith</td>
+                    <td className="py-3 px-4">
+                      <span className="px-2 py-1 bg-green-600 text-green-100 rounded-full text-xs">Available</span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-300">15</td>
+                    <td className="py-3 px-4 text-white font-medium">$250.00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Consigned Sales & Payouts */}
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Receipt className="w-5 h-5 text-slate-400" />
+                <h3 className="text-lg font-semibold text-white">Consigned Sales & Payouts</h3>
+              </div>
+              {canExport && (
+                <Button
+                  variant="secondary"
+                  onClick={() => handleExport('consigned-payouts', 'Consigned Payouts')}
+                  loading={exporting === 'consigned-payouts'}
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {/* Consignor Group */}
+              <div className="border border-slate-700 rounded-lg">
+                <div className="bg-slate-700 px-4 py-3 flex items-center justify-between">
+                  <h4 className="font-medium text-white">John Smith</h4>
+                  <span className="text-slate-400 text-sm">3 items • $420.00 total payouts</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-600">
+                      <tr>
+                        <th className="text-left py-2 px-4 text-xs font-medium text-slate-300">Date</th>
+                        <th className="text-left py-2 px-4 text-xs font-medium text-slate-300">Display ID</th>
+                        <th className="text-left py-2 px-4 text-xs font-medium text-slate-300">Sale Price</th>
+                        <th className="text-left py-2 px-4 text-xs font-medium text-slate-300">Payout Due</th>
+                        <th className="text-left py-2 px-4 text-xs font-medium text-slate-300">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-slate-700">
+                        <td className="py-2 px-4 text-slate-300 text-sm">Jan 15, 2024</td>
+                        <td className="py-2 px-4 text-white font-mono text-sm">ST-2024-000123</td>
+                        <td className="py-2 px-4 text-white text-sm">$200.00</td>
+                        <td className="py-2 px-4 text-green-400 font-medium text-sm">$140.00</td>
+                        <td className="py-2 px-4">
+                          <span className="px-2 py-1 bg-amber-600 text-amber-100 rounded-full text-xs">Pending</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Charts Placeholder */}
+      {activeView === 'standard' && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -453,6 +603,7 @@ export function Reports() {
           </div>
         </div>
       </motion.div>
+      )}
     </div>
   );
 }

@@ -591,6 +591,24 @@ export function StreamDetail() {
             </div>
           </div>
 
+          {/* Consignment Summary */}
+          <div className="bg-purple-600/10 border border-purple-600/20 rounded-lg p-4">
+            <h4 className="font-medium text-purple-300 mb-3">Consignment Summary</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-purple-200">Consigned Items:</span>
+                <span className="text-white ml-2">3</span>
+              </div>
+              <div>
+                <span className="text-purple-200">Projected Payouts:</span>
+                <span className="text-white ml-2">$245.00</span>
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-purple-300">
+              💡 Consigned items pay consignor per terms after shipment (or after return window)
+            </div>
+          </div>
+
           {/* Financial Input Section */}
           <div className="space-y-4">
             <h4 className="font-medium text-white">Financial Data Entry</h4>

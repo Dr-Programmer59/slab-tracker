@@ -15,12 +15,15 @@ const statusOptions: CardStatus[] = [
 
 const sportOptions = ['Baseball', 'Basketball', 'Football', 'Hockey', 'Soccer', 'Pokemon'];
 
+const ownershipOptions = ['Owned', 'Consigned'];
+
 export function FiltersPanel({ filters, onFiltersChange, onClose }: FiltersPanelProps) {
   const clearFilters = () => {
     onFiltersChange({ 
       search: '', 
       status: undefined, 
       sport: undefined, 
+      ownership: undefined,
       yearRange: undefined, 
       priceRange: undefined 
     });
@@ -71,6 +74,30 @@ export function FiltersPanel({ filters, onFiltersChange, onClose }: FiltersPanel
                 className="rounded"
               />
               <span className="text-sm text-slate-300">{sport}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Ownership Filter */}
+      <div>
+        <h4 className="text-sm font-medium text-slate-300 mb-3">Ownership</h4>
+        <div className="grid grid-cols-2 gap-2">
+          {ownershipOptions.map(ownership => (
+            <label key={ownership} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={filters.ownership?.includes(ownership) || false}
+                onChange={(e) => {
+                  const currentOwnership = filters.ownership || [];
+                  const newOwnership = e.target.checked
+                    ? [...currentOwnership, ownership]
+                    : currentOwnership.filter(o => o !== ownership);
+                  onFiltersChange({ ownership: newOwnership.length ? newOwnership : undefined });
+                }}
+                className="rounded"
+              />
+              <span className="text-sm text-slate-300">{ownership}</span>
             </label>
           ))}
         </div>

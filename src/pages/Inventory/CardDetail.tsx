@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Edit, Trash2, Printer, QrCode, Calendar, DollarSign } from 'lucide-react';
+import { Edit, Trash2, Printer, QrCode, Calendar, DollarSign, User, ExternalLink } from 'lucide-react';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
+import { OwnershipBadge } from '../../components/Consignment/OwnershipBadge';
+import { TermsPreview } from '../../components/Consignment/TermsPreview';
+import { PayoutStatusBadge } from '../../components/Consignment/PayoutStatusBadge';
 import { useInventoryStore } from '../../store/inventory';
 import { usePermissions } from '../../hooks/usePermissions';
 import { config } from '../../utils/config';
@@ -73,6 +76,54 @@ export function CardDetail({ card }: CardDetailProps) {
       >
         <div className="flex items-center justify-between">
           <StatusChip status={card.status} />
+          <OwnershipBadge ownership={card.ownership} />
+        </div>
+
+        {/* Consignment Details */}
+        {card.ownership === 'Consigned' && (
+          <div className="space-y-4 p-4 bg-slate-700 rounded-lg">
+            <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Consignment Details
+            </h4>
+            
+            {card.consignorName && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Consignor:</span>
+                <button className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                  {card.consignorName}
+                  <ExternalLink className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+
+            {card.consignmentTerms && (
+              <div>
+                <span className="text-slate-400 text-sm block mb-2">Terms:</span>
+                <TermsPreview terms={card.consignmentTerms} />
+              </div>
+            )}
+
+            {/* Settlement Section */}
+            <div className="border-t border-slate-600 pt-4">
+              <h5 className="text-sm font-medium text-slate-300 mb-3">Settlement</h5>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Payout Status:</span>
+                  <PayoutStatusBadge status={card.payoutStatus || 'None'} size="sm" />
+                </div>
+                {card.payoutDetails?.paidOn && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Paid On:</span>
+                    <span className="text-white">{card.payoutDetails.paidOn.toLocaleDateString()}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-6">
           {canEdit && (
             <div className="flex gap-2">
               <Button

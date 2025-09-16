@@ -23,6 +23,7 @@ const navItems = [
   { path: '/builder', label: 'Builder', icon: Smartphone, permission: 'streams.addItems' },
   { path: '/shipping', label: 'Shipping', icon: Truck, permission: 'shipping.list' },
   { path: '/reports', label: 'Reports', icon: BarChart3, permission: 'reports.view' },
+  { path: '/payouts', label: 'Payouts', icon: FileText, permission: 'users.list' },
   { path: '/users', label: 'Users', icon: Users, permission: 'users.list' },
   { path: '/audit', label: 'Audit', icon: FileText, permission: 'audit.view' },
 ];

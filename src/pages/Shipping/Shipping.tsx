@@ -83,7 +83,17 @@ export function Shipping() {
                   <p className="font-medium text-white text-xs sm:text-sm truncate max-w-[120px] sm:max-w-[150px]">{item.title}</p>
                   <StatusChip status={item.status} animate={false} />
                 </div>
-                <p className="text-slate-400 text-xs mb-2 sm:mb-3 truncate">{item.player} • {item.displayId}</p>
+                <div className="flex items-center gap-2 text-xs mb-2 sm:mb-3">
+                  <span className="text-slate-400 truncate">{item.player} • {item.displayId}</span>
+                  {item.ownership === 'Consigned' && (
+                    <span 
+                      className="w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold"
+                      title={`Consigned to ${item.consignorName || 'Unknown'}`}
+                    >
+                      C
+                    </span>
+                  )}
+                </div>
                 <Button
                   size="sm"
                   onClick={() => markPacked(item.id)}
@@ -135,7 +145,17 @@ export function Shipping() {
                   <p className="font-medium text-white text-sm truncate max-w-[150px]">{item.title}</p>
                   <StatusChip status={item.status} animate={false} />
                 </div>
-                <p className="text-slate-400 text-xs mb-3 truncate">{item.player} • {item.displayId}</p>
+                <div className="flex items-center gap-2 text-xs mb-3">
+                  <span className="text-slate-400 truncate">{item.player} • {item.displayId}</span>
+                  {item.ownership === 'Consigned' && (
+                    <span 
+                      className="w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold"
+                      title={`Consigned to ${item.consignorName || 'Unknown'}`}
+                    >
+                      C
+                    </span>
+                  )}
+                </div>
                 <Button
                   size="sm"
                   onClick={() => markShipped(item)}
@@ -186,7 +206,17 @@ export function Shipping() {
                   <p className="font-medium text-white text-sm truncate max-w-[150px]">{item.title}</p>
                   <StatusChip status={item.status} animate={false} />
                 </div>
-                <p className="text-slate-400 text-xs truncate">{item.player} • {item.displayId}</p>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-slate-400 truncate">{item.player} • {item.displayId}</span>
+                  {item.ownership === 'Consigned' && (
+                    <span 
+                      className="w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold"
+                      title={`Consigned to ${item.consignorName || 'Unknown'}`}
+                    >
+                      C
+                    </span>
+                  )}
+                </div>
               </motion.div>
             ))}
             

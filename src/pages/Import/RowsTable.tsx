@@ -1,12 +1,46 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Search, Check, AlertTriangle, Printer } from 'lucide-react';
+import { ArrowLeft, Search, Check, AlertTriangle, Printer, Settings } from 'lucide-react';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
+import { Modal } from '../../components/Common/Modal';
+import { ConsignorSelector } from '../../components/Consignment/ConsignorSelector';
+import { TermsPreview } from '../../components/Consignment/TermsPreview';
 import type { Batch, BatchRow } from '../../types';
 import { batchService } from '../../services/batchService';
 import { config } from '../../utils/config';
 import toast from 'react-hot-toast';
+
+// Mock consignors data - replace with actual API call
+const mockConsignors = [
+  {
+    id: '1',
+    name: 'John Smith',
+    email: 'john@example.com',
+    phone: '(555) 123-4567',
+    defaultTerms: {
+      sharePercentage: 70,
+      floorPrice: 50,
+      deductFees: true,
+      returnWindowDays: 30,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '2',
+    name: 'Sarah Johnson',
+    email: 'sarah@example.com',
+    defaultTerms: {
+      sharePercentage: 75,
+      floorPrice: 0,
+      deductFees: false,
+      returnWindowDays: 45,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+];
 
 interface RowsTableProps {
   batch: Batch;
@@ -17,6 +51,15 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
   const [rows, setRows] = useState<BatchRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showArriveModal, setShowArriveModal] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<BatchRow | null>(null);
+  const [consignmentData, setConsignmentData] = useState({
+    isConsignment: false,
+    consignor: null as any,
+    overrideTerms: false,
+    customTerms: null as any,
+  });
+  const [consignors, setConsignors] = useState(mockConsignors);
 
   // Fetch rows on component mount
   const fetchRows = React.useCallback(async () => {
@@ -39,22 +82,46 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
     fetchRows();
   }, [fetchRows]);
 
-  const markArrived = async (rowId: string) => {
+  const openArriveModal = (row: BatchRow) => {
+    setSelectedRow(row);
+    setShowArriveModal(true);
+  };
+
+  const markArrived = async () => {
     try {
       const idempotencyKey = `arrive-${rowId}-${Date.now()}`;
       const result = await batchService.markRowAsArrived(batch._id, rowId, idempotencyKey);
       
       if (result.success && result.data) {
         const { card, row, message } = result.data;
-        toast.success(message || 'Card marked as arrived and label generated!');
+        
+        if (consignmentData.isConsignment && consignmentData.consignor) {
+          toast.success(`Consigned to ${consignmentData.consignor.name} - ${message || 'Card marked as arrived and label generated!'}`);
+        } else {
+          toast.success(message || 'Card marked as arrived and label generated!');
+        }
         
         fetchRows(); // Refresh the rows
+        setShowArriveModal(false);
+        setConsignmentData({ isConsignment: false, consignor: null, overrideTerms: false, customTerms: null });
       } else {
         toast.error(result.error || 'Failed to mark as arrived');
       }
     } catch (error) {
       toast.error('Failed to mark as arrived');
     }
+  };
+
+  const handleCreateConsignor = (newConsignor: any) => {
+    const consignor = {
+      ...newConsignor,
+      id: Date.now().toString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    setConsignors([...consignors, consignor]);
+    setConsignmentData({ ...consignmentData, consignor });
+    toast.success(`Consignor "${consignor.name}" created successfully!`);
   };
 
   const filteredRows = rows.filter(row =>
@@ -163,7 +230,7 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={() => markArrived(row._id)}
+                        onClick={() => openArriveModal(row)}
                         className="w-full sm:w-auto text-xs"
                       >
                         <Printer className="w-4 h-4" />
@@ -181,6 +248,165 @@ export function RowsTable({ batch, onBack }: RowsTableProps) {
           </table>
         </div>
       )}
+
+      {/* Arrive Modal */}
+      <Modal
+        isOpen={showArriveModal}
+        onClose={() => {
+          setShowArriveModal(false);
+          setConsignmentData({ isConsignment: false, consignor: null, overrideTerms: false, customTerms: null });
+        }}
+        title="Mark Card as Arrived"
+        size="lg"
+      >
+        {selectedRow && (
+          <div className="space-y-4">
+            {/* Card Info */}
+            <div className="bg-slate-700 rounded-lg p-4">
+              <h4 className="font-medium text-white mb-2">{selectedRow.title}</h4>
+              <div className="text-sm text-slate-400">
+                <p>Player: {selectedRow.player}</p>
+                <p>Row #{selectedRow.rowNumber}</p>
+                <p>Purchase Price: ${selectedRow.purchasePrice}</p>
+              </div>
+            </div>
+
+            {/* Consignment Checkbox */}
+            <div>
+              <label className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={consignmentData.isConsignment}
+                  onChange={(e) => setConsignmentData({
+                    ...consignmentData,
+                    isConsignment: e.target.checked,
+                    consignor: e.target.checked ? consignmentData.consignor : null,
+                  })}
+                  className="rounded"
+                />
+                <span className="text-white font-medium">Received on Consignment</span>
+              </label>
+            </div>
+
+            {/* Consignment Details */}
+            {consignmentData.isConsignment && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4"
+              >
+                {/* Consignor Selector */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Consignor <span className="text-red-400">*</span>
+                  </label>
+                  <ConsignorSelector
+                    selectedConsignor={consignmentData.consignor}
+                    onSelect={(consignor) => setConsignmentData({ ...consignmentData, consignor })}
+                    consignors={consignors}
+                    onCreateNew={handleCreateConsignor}
+                  />
+                </div>
+
+                {/* Terms Preview */}
+                {consignmentData.consignor && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Terms</label>
+                    <TermsPreview terms={consignmentData.consignor.defaultTerms} />
+                  </div>
+                )}
+
+                {/* Override Toggle */}
+                {consignmentData.consignor && (
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={consignmentData.overrideTerms}
+                        onChange={(e) => setConsignmentData({
+                          ...consignmentData,
+                          overrideTerms: e.target.checked,
+                          customTerms: e.target.checked ? { ...consignmentData.consignor.defaultTerms } : null,
+                        })}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-slate-300">Override terms for this card</span>
+                      <Settings className="w-4 h-4 text-slate-400" />
+                    </label>
+                  </div>
+                )}
+
+                {/* Custom Terms */}
+                {consignmentData.overrideTerms && consignmentData.customTerms && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="grid grid-cols-2 gap-4 p-4 bg-slate-700 rounded-lg"
+                  >
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Share %</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={consignmentData.customTerms.sharePercentage}
+                        onChange={(e) => setConsignmentData({
+                          ...consignmentData,
+                          customTerms: {
+                            ...consignmentData.customTerms,
+                            sharePercentage: parseInt(e.target.value) || 0
+                          }
+                        })}
+                        className="w-full bg-slate-600 border border-slate-500 rounded px-2 py-1 text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">Floor Price</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={consignmentData.customTerms.floorPrice || ''}
+                        onChange={(e) => setConsignmentData({
+                          ...consignmentData,
+                          customTerms: {
+                            ...consignmentData.customTerms,
+                            floorPrice: parseFloat(e.target.value) || 0
+                          }
+                        })}
+                        className="w-full bg-slate-600 border border-slate-500 rounded px-2 py-1 text-white text-sm"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowArriveModal(false);
+                  setConsignmentData({ isConsignment: false, consignor: null, overrideTerms: false, customTerms: null });
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={markArrived}
+                disabled={consignmentData.isConsignment && !consignmentData.consignor}
+                className="flex-1"
+              >
+                <Printer className="w-4 h-4" />
+                Confirm Arrived
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

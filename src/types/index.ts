@@ -17,7 +17,44 @@ export interface Card {
   updatedAt: Date;
   notes?: string;
   imageUrl?: string;
+  // Consignment fields
+  ownership: 'Owned' | 'Consigned';
+  consignorId?: string;
+  consignorName?: string;
+  consignmentTerms?: ConsignmentTerms;
+  payoutStatus?: PayoutStatus;
+  payoutDetails?: PayoutDetails;
 }
+
+export interface Consignor {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  payoutMethod?: string;
+  payoutDetails?: string;
+  defaultTerms: ConsignmentTerms;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ConsignmentTerms {
+  sharePercentage: number; // e.g., 70 for 70%
+  floorPrice?: number;
+  deductFees: boolean;
+  returnWindowDays: number;
+}
+
+export interface PayoutDetails {
+  status: PayoutStatus;
+  paidAmount?: number;
+  paidOn?: Date;
+  reference?: string;
+  approvedBy?: string;
+  approvedAt?: Date;
+}
+
+export type PayoutStatus = 'None' | 'Pending' | 'Approved' | 'Paid' | 'Returned';
 
 export interface Batch {
   _id: string;
@@ -233,6 +270,7 @@ export interface FilterState {
   search: string;
   status?: CardStatus[];
   sport?: string[];
+  ownership?: string[];
   yearRange?: [number, number];
   priceRange?: [number, number];
 }

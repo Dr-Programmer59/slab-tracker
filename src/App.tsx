@@ -15,6 +15,7 @@ import { Shipping } from './pages/Shipping/Shipping';
 import { Reports } from './pages/Reports/Reports';
 import { Users } from './pages/Users/Users';
 import { Audit } from './pages/Audit/Audit';
+import { PayoutPanel } from './pages/Reports/PayoutPanel';
 
 function App() {
   const { isAuthenticated, initializing, initializeAuth } = useAuthStore();
@@ -71,6 +72,7 @@ function App() {
           <Route path="builder" element={<Builder />} />
           <Route path="shipping" element={<Shipping />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="payouts" element={<PayoutPanel />} />
           <Route path="users" element={<Users />} />
           <Route path="audit" element={<Audit />} />
         </Route>

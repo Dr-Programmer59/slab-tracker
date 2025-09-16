@@ -6,6 +6,7 @@ import { useInventoryStore } from '../../store/inventory';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Button } from '../../components/Common/Button';
 import { StatusChip } from '../../components/Common/StatusChip';
+import { OwnershipBadge } from '../../components/Consignment/OwnershipBadge';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import ErrorMessage from '../../components/Common/ErrorMessage';
 import { Drawer } from '../../components/Common/Drawer';
@@ -157,6 +158,11 @@ export function Inventory() {
                       <div>
                         <div className="font-medium text-white text-sm md:text-base truncate max-w-[150px] md:max-w-none">{card.title}</div>
                         <div className="text-xs text-slate-400">{card.displayId}</div>
+                        {card.ownership === 'Consigned' && (
+                          <div className="mt-1">
+                            <OwnershipBadge ownership="Consigned" size="sm" />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -180,7 +186,14 @@ export function Inventory() {
                     )}
                   </td>
                   <td className="py-3 md:py-4 px-3 md:px-6">
-                    <StatusChip status={card.status} />
+                    <div className="flex flex-col gap-1">
+                      <StatusChip status={card.status} />
+                      {card.ownership === 'Consigned' && (
+                        <div className="text-xs text-purple-400">
+                          Consigned
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 md:py-4 px-3 md:px-6">
                     <Button
