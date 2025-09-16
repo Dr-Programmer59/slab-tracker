@@ -381,8 +381,7 @@ export function Reports() {
       )}
 
       {/* Export Options (Admin/Manager only) */}
-      {activeView === 'standard' && (
-      {canExport && (
+      {activeView === 'standard' && canExport && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -458,7 +457,6 @@ export function Reports() {
             </div>
           </div>
         </motion.div>
-      )}
       )}
 
       {/* Consignment Reports */}

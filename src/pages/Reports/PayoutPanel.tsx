@@ -243,31 +243,33 @@ export function PayoutPanel() {
                   </td>
                   {canManagePayouts && (
                     <td className="py-3 md:py-4 px-3 md:px-6">
-                      <div className="flex items-center gap-2">
-                        {payout.status === 'Pending' && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleApprove(payout.id)}
-                          >
-                            <Check className="w-4 h-4" />
-                            Approve
-                          </Button>
-                        )}
-                        {payout.status === 'Approved' && (
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => openMarkPaidModal(payout)}
-                          >
-                            <DollarSign className="w-4 h-4" />
-                            Mark Paid
-                          </Button>
-                        )}
-                        {payout.status === 'Paid' && (
-                          <span className="text-green-400 text-sm">✓ Paid</span>
-                        )}
-                      </div>
+                      <>
+                        <div className="flex items-center gap-2">
+                          {payout.status === 'Pending' && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleApprove(payout.id)}
+                            >
+                              <Check className="w-4 h-4" />
+                              Approve
+                            </Button>
+                          )}
+                          {payout.status === 'Approved' && (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => openMarkPaidModal(payout)}
+                            >
+                              <DollarSign className="w-4 h-4" />
+                              Mark Paid
+                            </Button>
+                          )}
+                          {payout.status === 'Paid' && (
+                            <span className="text-green-400 text-sm">✓ Paid</span>
+                          )}
+                        </div>
+                      </>
                     </td>
                   )}
                 </tr>
