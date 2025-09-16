@@ -200,9 +200,9 @@ export function PayoutPanel() {
                 <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Payout Due</th>
                 <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Status</th>
                 <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Sale Date</th>
-                {canManagePayouts && (
-                  <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">Actions</th>
-                )}
+                <th className="text-left py-3 md:py-4 px-3 md:px-6 text-xs md:text-sm font-medium text-slate-300">
+                  {canManagePayouts ? 'Actions' : ''}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -241,38 +241,36 @@ export function PayoutPanel() {
                       <span className="text-slate-300 text-sm">{payout.saleDate.toLocaleDateString()}</span>
                     </div>
                   </td>
-                  {canManagePayouts && (
-                    <td className="py-3 md:py-4 px-3 md:px-6">
-                      <>
-                        <div className="flex items-center gap-2">
-                          {payout.status === 'Pending' && (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => handleApprove(payout.id)}
-                            >
-                              <Check className="w-4 h-4" />
-                              Approve
-                            </Button>
-                          )}
-                          {payout.status === 'Approved' && (
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={() => openMarkPaidModal(payout)}
-                            >
-                              <DollarSign className="w-4 h-4" />
-                              Mark Paid
-                            </Button>
-                          )}
-                          {payout.status === 'Paid' && (
-                            <span className="text-green-400 text-sm">✓ Paid</span>
-                          )}
-                        </div>
-                      </>
-                    </td>
-                  )}
-                </tr>
+                  <td className="py-3 md:py-4 px-3 md:px-6">
+                    {canManagePayouts && (
+                      <div className="flex items-center gap-2">
+                        {payout.status === 'Pending' && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleApprove(payout.id)}
+                          >
+                            <Check className="w-4 h-4" />
+                            Approve
+                          </Button>
+                        )}
+                        {payout.status === 'Approved' && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => openMarkPaidModal(payout)}
+                          >
+                            <DollarSign className="w-4 h-4" />
+                            Mark Paid
+                          </Button>
+                        )}
+                        {payout.status === 'Paid' && (
+                          <span className="text-green-400 text-sm">✓ Paid</span>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </motion.tr>
               ))}
             </tbody>
           </table>
